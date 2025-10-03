@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FintonText Type System Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0969da;
+            --bg: #ffffff;
+            --text: #24292f;
+            --border: #d0d7de;
+            --hover: #f6f8fa;
+            --code-bg: #f6f8fa;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #6e7781;
+        }
+
+        .intro {
+            background: var(--hover);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .type-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+        }
+
+        .type-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .type-card h2 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .type-icon {
+            font-size: 1.5rem;
+        }
+
+        .type-card p {
+            color: #6e7781;
+            margin-bottom: 16px;
+        }
+
+        .type-card ul {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .type-card li {
+            padding: 4px 0;
+            color: #57606a;
+        }
+
+        .type-card li::before {
+            content: "▸";
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #0860ca;
+            transform: scale(1.02);
+        }
+
+        .overview {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .overview h2 {
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: Monaco, Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        .stats {
+            display: flex;
+            gap: 32px;
+            margin-top: 16px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: #6e7781;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            color: #6e7781;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 FintonText Type System</h1>
+            <p class="subtitle">Complete TypeScript type definitions for multi-mode text editing</p>
+        </header>
+
+        <div class="intro">
+            <strong>About the Type System</strong>
+            <p style="margin-top: 8px;">
+                FintonText uses a comprehensive TypeScript type system to ensure type safety across
+                all three editing modes (Rich Text, Markdown, Code), Git integration, theming, and
+                workspace management. This documentation provides detailed information about each type,
+                its purpose, and usage examples.
+            </p>
+        </div>
+
+        <div class="overview">
+            <h2>Type System Overview</h2>
+            <p>
+                The type system is organized into four main categories, each handling a specific aspect
+                of the application architecture.
+            </p>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">40+</div>
+                    <div class="stat-label">Total Types</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Type Files</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Type Coverage</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="type-grid">
+            <div class="type-card">
+                <h2>
+                    <span class="type-icon">✍️</span>
+                    Editor Types
+                </h2>
+                <p>Core editing functionality, modes, and content conversion</p>
+                <ul>
+                    <li><code>EditorMode</code> - Rich text, markdown, code</li>
+                    <li><code>EditorState</code> - Complete editor state</li>
+                    <li><code>CodeLanguage</code> - 18+ programming languages</li>
+                    <li><code>IEditor</code> - Common editor interface</li>
+                    <li><code>ConversionResult</code> - Mode switching</li>
+                    <li><code>RichTextDocument</code> - Slate.js format</li>
+                </ul>
+                <a href="editor-types.md" class="btn">View Documentation →</a>
+            </div>
+
+            <div class="type-card">
+                <h2>
+                    <span class="type-icon">📄</span>
+                    Document Types
+                </h2>
+                <p>File operations, persistence, and auto-save</p>
+                <ul>
+                    <li><code>Document</code> - Complete document structure</li>
+                    <li><code>FileInfo</code> - Filesystem metadata</li>
+                    <li><code>SaveOptions</code> - Save configuration</li>
+                    <li><code>OpenOptions</code> - File loading options</li>
+                    <li><code>RecentFile</code> - Recent file tracking</li>
+                    <li><code>AutoSaveState</code> - Auto-save system</li>
+                </ul>
+                <a href="document-types.md" class="btn">View Documentation →</a>
+            </div>
+
+            <div class="type-card">
+                <h2>
+                    <span class="type-icon">🎨</span>
+                    Theme Types
+                </h2>
+                <p>Visual appearance, colors, fonts, and styling</p>
+                <ul>
+                    <li><code>Theme</code> - Complete theme definition</li>
+                    <li><code>ThemeColors</code> - Full color palette</li>
+                    <li><code>ThemeFonts</code> - Typography system</li>
+                    <li><code>ThemeType</code> - Light/dark classification</li>
+                    <li>CSS custom properties integration</li>
+                    <li>Built-in themes included</li>
+                </ul>
+                <a href="theme-types.md" class="btn">View Documentation →</a>
+            </div>
+
+            <div class="type-card">
+                <h2>
+                    <span class="type-icon">📁</span>
+                    Workspace Types
+                </h2>
+                <p>Git integration, search, and multi-document management</p>
+                <ul>
+                    <li><code>Workspace</code> - Workspace configuration</li>
+                    <li><code>GitStatus</code> - Repository status</li>
+                    <li><code>SearchQuery</code> - FTS5 full-text search</li>
+                    <li><code>SearchResult</code> - Search results</li>
+                    <li><code>RemoteRepository</code> - Remote sync</li>
+                    <li><code>ConflictResolution</code> - Merge conflicts</li>
+                </ul>
+                <a href="workspace-types.md" class="btn">View Documentation →</a>
+            </div>
+        </div>
+
+        <div class="overview">
+            <h2>Key Features</h2>
+            <ul style="list-style: none;">
+                <li style="padding: 8px 0;">
+                    ✅ <strong>Type Safety</strong> - Full TypeScript strict mode compliance
+                </li>
+                <li style="padding: 8px 0;">
+                    ✅ <strong>Editor Modes</strong> - Rich Text, Markdown, Code with seamless switching
+                </li>
+                <li style="padding: 8px 0;">
+                    ✅ <strong>Git Integration</strong> - Version control, remote sync, conflict resolution
+                </li>
+                <li style="padding: 8px 0;">
+                    ✅ <strong>Full-Text Search</strong> - SQLite FTS5 with tag filtering
+                </li>
+                <li style="padding: 8px 0;">
+                    ✅ <strong>Theming</strong> - Customizable colors, fonts, and styling
+                </li>
+                <li style="padding: 8px 0;">
+                    ✅ <strong>Auto-Save</strong> - Configurable auto-save with dirty state tracking
+                </li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>FintonText v0.1.0 | Generated October 2, 2025</p>
+            <p style="margin-top: 8px;">
+                <a href="../../README.md" style="color: var(--primary); text-decoration: none;">← Back to README</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

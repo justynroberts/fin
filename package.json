@@ -1,0 +1,156 @@
+{
+  "name": "fintext",
+  "productName": "FinText",
+  "version": "1.0.0",
+  "description": "A powerful text editor that seamlessly switches between Rich Text, Markdown, and Code modes",
+  "main": "dist/main/index.js",
+  "author": {
+    "name": "FinText Team",
+    "email": "support@fintext.app"
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "build": "npm run build:renderer && npm run build:main && npm run build:preload",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:preload": "tsc -p tsconfig.preload.json",
+    "package": "npm run build && electron-builder",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:win": "npm run build && electron-builder --win",
+    "package:linux": "npm run build && electron-builder --linux",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "electron",
+    "text-editor",
+    "rich-text",
+    "markdown",
+    "code-editor",
+    "productivity"
+  ],
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^14.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.19.19",
+    "@types/react": "^18.3.25",
+    "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/ui": "^1.6.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9",
+    "electron-squirrel-startup": "^1.0.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "happy-dom": "^12.10.3",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.20",
+    "vitest": "^1.6.1",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "better-sqlite3": "^9.6.0",
+    "chokidar": "^3.6.0",
+    "html-docx-js": "^0.3.1",
+    "immer": "^10.1.3",
+    "jspdf": "^3.0.3",
+    "marked": "^16.3.0",
+    "mermaid": "^11.12.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rehype-raw": "^7.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-react": "^10.0.0",
+    "simple-git": "^3.28.0",
+    "slate": "^0.102.0",
+    "slate-history": "^0.100.0",
+    "slate-react": "^0.102.0",
+    "zustand": "^4.5.7"
+  },
+  "build": {
+    "appId": "com.fintext.app",
+    "productName": "FinText",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "icon": "build/icon.png"
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/better-sqlite3/build/Release",
+        "to": "better-sqlite3",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
+}

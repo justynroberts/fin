@@ -1,0 +1,43 @@
+{
+  "appId": "com.fintontext.app",
+  "productName": "FintonText",
+  "directories": {
+    "output": "release/${version}"
+  },
+  "files": [
+    "dist/**/*",
+    "package.json"
+  ],
+  "mac": {
+    "target": ["dmg", "zip"],
+    "category": "public.app-category.productivity",
+    "icon": "build/icon.icns",
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist"
+  },
+  "dmg": {
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  },
+  "win": {
+    "target": ["nsis", "zip"],
+    "icon": "build/icon.ico"
+  },
+  "linux": {
+    "target": ["AppImage", "deb", "rpm"],
+    "category": "Office",
+    "icon": "build/icons"
+  }
+}
