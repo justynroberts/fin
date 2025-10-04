@@ -277,7 +277,7 @@ export class MacroEngine {
           formattedText = `\`${selectedText}\``;
           break;
       }
-    } else if (context.editorMode === 'rich-text') {
+    } else if (context.editorMode === 'notes') {
       switch (action.type) {
         case 'format-bold':
           formattedText = `<strong>${selectedText}</strong>`;
@@ -316,7 +316,7 @@ export class MacroEngine {
 
     if (context.editorMode === 'markdown') {
       linkText = `[${text}](${url})`;
-    } else if (context.editorMode === 'rich-text') {
+    } else if (context.editorMode === 'notes') {
       linkText = `<a href="${url}">${text}</a>`;
     } else {
       linkText = `${text} (${url})`;
@@ -343,7 +343,7 @@ export class MacroEngine {
 
     if (context.editorMode === 'markdown') {
       headingText = `${'#'.repeat(level)} ${text}\n\n`;
-    } else if (context.editorMode === 'rich-text') {
+    } else if (context.editorMode === 'notes') {
       headingText = `<h${level}>${text}</h${level}>`;
     } else {
       headingText = `${text}\n${'='.repeat(text.length)}\n\n`;

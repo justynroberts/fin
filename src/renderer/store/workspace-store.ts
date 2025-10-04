@@ -16,7 +16,7 @@ interface Document {
   id: string;
   path: string;
   title: string;
-  mode: 'rich-text' | 'markdown' | 'code';
+  mode: 'notes' | 'markdown' | 'code';
   tags: string[];
   created: string;
   modified: string;

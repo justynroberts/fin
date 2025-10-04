@@ -228,11 +228,11 @@
   color: var(--color-secondary);
 }
 
-.document-type-badge.rich-text {
+.document-type-badge.notes {
   background: rgba(139, 92, 246, 0.1);
 }
 
-.document-type-badge.rich-text .material-symbols-rounded {
+.document-type-badge.notes .material-symbols-rounded {
   color: #8b5cf6;
 }
 

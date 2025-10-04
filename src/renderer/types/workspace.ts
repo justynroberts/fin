@@ -18,7 +18,7 @@ export interface WorkspaceSettings {
   autoCommit: boolean;
   autoSync: boolean;
   syncInterval: number; // minutes
-  defaultMode: 'rich-text' | 'markdown' | 'code';
+  defaultMode: 'notes' | 'markdown' | 'code';
   showHiddenFiles: boolean;
 }
 
@@ -91,7 +91,7 @@ export interface WorkspaceDocumentMetadata {
   tags: string[];
   created: string;
   modified: string;
-  mode: 'rich-text' | 'markdown' | 'code';
+  mode: 'notes' | 'markdown' | 'code';
   language?: string;
   customFields?: Record<string, any>;
 }
@@ -106,7 +106,7 @@ export interface Tag {
 export interface SearchQuery {
   text?: string;
   tags?: string[];
-  mode?: 'rich-text' | 'markdown' | 'code';
+  mode?: 'notes' | 'markdown' | 'code';
   dateRange?: {
     start?: Date;
     end?: Date;
@@ -119,7 +119,7 @@ export interface SearchResult {
   documentId: string;
   path: string;
   title: string;
-  mode: 'rich-text' | 'markdown' | 'code';
+  mode: 'notes' | 'markdown' | 'code';
   tags: string[];
   modified: Date;
   matches: SearchMatch[];
