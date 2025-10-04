@@ -46,6 +46,8 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
   const [showSaveDialog, setShowSaveDialog] = React.useState(false);
   const [showAIPrompt, setShowAIPrompt] = React.useState(false);
   const [showExportDialog, setShowExportDialog] = React.useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = React.useState(false);
+  const [templateName, setTemplateName] = React.useState('');
   const [showSettings, setShowSettings] = React.useState(false);
   const [tagInput, setTagInput] = React.useState('');
   const [authorTag, setAuthorTag] = React.useState<string | null>(null);
@@ -91,7 +93,7 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
     }
 
     // Remove old type tags
-    const modes = ['rich-text', 'markdown', 'code'];
+    const modes = ['notes', 'markdown', 'code'];
     const cleanedTags = updatedTags.filter(tag => {
       if (modes.includes(tag)) {
         return tag === typeTag;
@@ -203,7 +205,7 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
           />
         );
 
-      case 'rich-text':
+      case 'notes':
         return (
           <RichTextEditor content={content} onChange={handleContentChange} />
         );
@@ -297,6 +299,33 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
     } catch (error) {
       console.error('[Save] Save failed:', error);
       alert('Failed to save document: ' + (error as Error).message);
+    }
+  };
+
+  const handleSaveAsTemplate = async () => {
+    if (!templateName.trim()) {
+      alert('Please enter a template name');
+      return;
+    }
+
+    try {
+      const result = await window.electronAPI.template.save(
+        templateName.trim(),
+        mode,
+        language,
+        content
+      );
+
+      if (result.success) {
+        setShowTemplateDialog(false);
+        setTemplateName('');
+        alert(`Template "${templateName}" saved successfully!`);
+      } else {
+        alert(`Failed to save template: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('[Template] Failed to save template:', error);
+      alert('Failed to save template: ' + (error as Error).message);
     }
   };
 
@@ -573,6 +602,14 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
             <span className="material-symbols-rounded">download</span>
           </button>
 
+          <button
+            className="ai-button"
+            onClick={() => setShowTemplateDialog(true)}
+            title="Save as Template"
+          >
+            <span className="material-symbols-rounded">bookmark_add</span>
+          </button>
+
           <div className="header-divider"></div>
 
           <div className="document-type-selector">
@@ -666,6 +703,43 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
       />
+
+      {/* Template Dialog */}
+      {showTemplateDialog && (
+        <div className="dialog-overlay" onClick={() => setShowTemplateDialog(false)}>
+          <div className="dialog-content" onClick={(e) => e.stopPropagation()}>
+            <div className="dialog-header">
+              <h2>Save as Template</h2>
+              <button className="dialog-close" onClick={() => setShowTemplateDialog(false)}>
+                <span className="material-symbols-rounded">close</span>
+              </button>
+            </div>
+            <div className="dialog-body">
+              <p>Save this {mode} document as a reusable template.</p>
+              <div className="form-group">
+                <label htmlFor="template-name">Template Name</label>
+                <input
+                  id="template-name"
+                  type="text"
+                  className="form-input"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="My Template"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="dialog-footer">
+              <button className="dialog-btn secondary" onClick={() => setShowTemplateDialog(false)}>
+                Cancel
+              </button>
+              <button className="dialog-btn primary" onClick={handleSaveAsTemplate}>
+                Save Template
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

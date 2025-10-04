@@ -16,6 +16,14 @@
   color: var(--color-foreground);
   margin: 0 0 var(--space-sm) 0;
   font-family: 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-icon {
+  font-size: 36px;
+  color: var(--color-foreground);
 }
 
 .dashboard-subtitle {
@@ -76,6 +84,13 @@
   color: var(--color-foreground);
   margin: 0;
   font-family: 'Inter', sans-serif;
+}
+
+.card-description {
+  font-size: 14px;
+  color: var(--color-secondary);
+  margin: 0 0 var(--space-md) 0;
+  line-height: 1.5;
 }
 
 .quick-actions {

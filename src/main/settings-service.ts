@@ -236,9 +236,16 @@ class SettingsService {
    * Set AI config (splits between workspace and app data)
    */
   async setAIConfig(config: AIConfig): Promise<void> {
-    // Save API keys to app data
+    // Save API keys to app data (only API keys, not provider/model/enableMemory)
     if (!this.appDataSettings.aiConfig) {
-      this.appDataSettings.aiConfig = config;
+      this.appDataSettings.aiConfig = {
+        provider: 'anthropic',
+        openaiApiKey: config.openaiApiKey,
+        anthropicApiKey: config.anthropicApiKey,
+        openrouterApiKey: config.openrouterApiKey,
+        model: '',
+        enableMemory: false,
+      };
     } else {
       this.appDataSettings.aiConfig.openaiApiKey = config.openaiApiKey;
       this.appDataSettings.aiConfig.anthropicApiKey = config.anthropicApiKey;

@@ -132,6 +132,23 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     }
   };
 
+  const handleKill = async () => {
+    try {
+      const response = await window.electronAPI.code.kill();
+      if (response.success) {
+        setResult({
+          output: result?.output || '',
+          error: 'Process was terminated by user',
+          exitCode: -1,
+          executionTime: result?.executionTime || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to kill process:', error);
+    }
+    setIsExecuting(false);
+  };
+
   return (
     <div className="code-editor">
       <div className="code-editor-toolbar">
@@ -154,15 +171,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           >
             <span className="material-symbols-rounded">settings</span>
           </button>
-          <button
-            className="toolbar-btn-code primary"
-            onClick={handleExecute}
-            disabled={isExecuting}
-            title="Run Code (Cmd/Ctrl+Enter)"
-          >
-            <span className="material-symbols-rounded">{isExecuting ? 'progress_activity' : 'play_arrow'}</span>
-            {isExecuting ? 'Running...' : 'Run'}
-          </button>
+          {isExecuting ? (
+            <button
+              className="toolbar-btn-code danger"
+              onClick={handleKill}
+              title="Stop Execution"
+            >
+              <span className="material-symbols-rounded">stop</span>
+              Stop
+            </button>
+          ) : (
+            <button
+              className="toolbar-btn-code primary"
+              onClick={handleExecute}
+              title="Run Code (Cmd/Ctrl+Enter)"
+            >
+              <span className="material-symbols-rounded">play_arrow</span>
+              Run
+            </button>
+          )}
         </div>
       </div>
 

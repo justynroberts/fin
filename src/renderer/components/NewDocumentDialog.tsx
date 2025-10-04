@@ -9,13 +9,23 @@ import './NewDocumentDialog.css';
 interface NewDocumentDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (mode: EditorMode, name?: string, language?: string) => void;
+  onCreate: (mode: EditorMode, name?: string, language?: string, templateContent?: string) => void;
+}
+
+interface Template {
+  name: string;
+  mode: string;
+  language?: string;
+  created: string;
+  filename: string;
 }
 
 const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, onCreate }) => {
   const [selectedMode, setSelectedMode] = useState<EditorMode>('markdown');
   const [documentName, setDocumentName] = useState('');
   const [language, setLanguage] = useState('javascript');
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -26,8 +36,21 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
       // Reset form
       setDocumentName('');
       setLanguage('javascript');
+      setSelectedTemplate(null);
+
+      // Load templates
+      loadTemplates();
     }
   }, [isOpen]);
+
+  const loadTemplates = async () => {
+    try {
+      const allTemplates = await window.electronAPI.template.list();
+      setTemplates(allTemplates);
+    } catch (error) {
+      console.error('[NewDocumentDialog] Failed to load templates:', error);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -58,10 +81,23 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
 
   if (!isOpen) return null;
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const name = documentName.trim() || undefined;
     const lang = selectedMode === 'code' ? language : undefined;
-    onCreate(selectedMode, name, lang);
+
+    let templateContent: string | undefined;
+    if (selectedTemplate) {
+      try {
+        const result = await window.electronAPI.template.load(selectedTemplate);
+        if (result.success) {
+          templateContent = result.content;
+        }
+      } catch (error) {
+        console.error('[NewDocumentDialog] Failed to load template:', error);
+      }
+    }
+
+    onCreate(selectedMode, name, lang, templateContent);
     onClose();
   };
 
@@ -115,7 +151,7 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
                 onDoubleClick={() => handleTypeDoubleClick('notes')}
               >
                 <div className="doc-type-icon-wrapper">
-                  <span className="material-symbols-rounded doc-type-icon">description</span>
+                  <span className="material-symbols-rounded doc-type-icon">edit_note</span>
                 </div>
                 <div className="doc-type-info">
                   <span className="doc-type-name">Notes</span>
@@ -198,10 +234,33 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
               </select>
             </div>
           )}
+
+          {/* Template Selection */}
+          {templates.filter(t => t.mode === selectedMode).length > 0 && (
+            <div className="form-group">
+              <label htmlFor="template">Start from Template (optional)</label>
+              <select
+                id="template"
+                className="form-input"
+                value={selectedTemplate || ''}
+                onChange={(e) => setSelectedTemplate(e.target.value || null)}
+              >
+                <option value="">Blank Document</option>
+                {templates
+                  .filter(t => t.mode === selectedMode)
+                  .map(template => (
+                    <option key={template.filename} value={template.filename}>
+                      {template.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="new-doc-footer">
           <button className="new-doc-btn secondary" onClick={onClose}>
+            <span className="material-symbols-rounded">close</span>
             Cancel
           </button>
           <button className="new-doc-btn primary" onClick={handleCreate}>

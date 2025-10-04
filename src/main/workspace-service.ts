@@ -23,7 +23,7 @@ export interface WorkspaceDocumentMetadata {
   tags: string[];
   created: string;
   modified: string;
-  mode: 'rich-text' | 'markdown' | 'code';
+  mode: 'notes' | 'markdown' | 'code';
   language?: string;
   customFields?: Record<string, any>;
 }
@@ -146,7 +146,7 @@ export class WorkspaceService {
   async addDocument(
     relativePath: string,
     title: string,
-    mode: 'rich-text' | 'markdown' | 'code',
+    mode: 'notes' | 'markdown' | 'code',
     tags: string[] = [],
     language?: string
   ): Promise<void> {

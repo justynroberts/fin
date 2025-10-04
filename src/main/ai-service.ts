@@ -48,7 +48,9 @@ class AIService {
   async sendPrompt(
     documentPath: string,
     documentContent: string,
-    userPrompt: string
+    userPrompt: string,
+    mode: string,
+    language: string
   ): Promise<string> {
     const config = await settingsService.getAIConfig();
 
@@ -65,9 +67,43 @@ class AIService {
       }
     }
 
-    // Add current context
-    const contextMessage = `Here is the current document content:\n\n${documentContent}\n\nUser request: ${userPrompt}`;
-    messages.push({ role: 'user', content: contextMessage });
+    // Add system message for code mode to ensure proper output
+    if (mode === 'code') {
+      // Enhance the user prompt to emphasize code generation
+      const enhancedPrompt = userPrompt.toLowerCase().includes('create') ||
+                            userPrompt.toLowerCase().includes('write') ||
+                            userPrompt.toLowerCase().includes('generate')
+        ? userPrompt
+        : `Create ${language} code to ${userPrompt}`;
+
+      messages.push({
+        role: 'user',
+        content: `You are a code generation assistant. You MUST follow these rules:
+1. Generate ONLY valid ${language} code - no explanations, no markdown, no comments unless asked
+2. Do NOT wrap code in markdown code fences or backticks
+3. Return raw, executable ${language} code that can be directly run or compiled
+4. If you need to explain something, do it as code comments in ${language} syntax
+
+Current ${language} code:
+\`\`\`
+${documentContent || '// Empty file'}
+\`\`\`
+
+Task: ${enhancedPrompt}
+
+Remember: Return ONLY raw ${language} code, nothing else.`
+      });
+    } else if (mode === 'markdown') {
+      messages.push({
+        role: 'user',
+        content: `You are working with a Markdown document.\n\nCurrent content:\n${documentContent}\n\nUser request: ${userPrompt}`
+      });
+    } else {
+      messages.push({
+        role: 'user',
+        content: `You are working with a formatted notes document (rich text).\n\nCurrent content:\n${documentContent}\n\nUser request: ${userPrompt}`
+      });
+    }
 
     // Call the appropriate provider
     let response: string;

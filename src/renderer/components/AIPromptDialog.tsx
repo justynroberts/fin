@@ -19,7 +19,7 @@ const PROMPT_HISTORY_KEY = 'ai-prompt-history';
 const MAX_HISTORY_ITEMS = 10;
 
 const AIPromptDialog: React.FC<AIPromptDialogProps> = ({ isOpen, onClose, onInsert, onReplace, onReplaceSelection, onOpenSettings }) => {
-  const { path: documentPath, content, selection } = useDocumentStore();
+  const { path: documentPath, content, selection, mode, language } = useDocumentStore();
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -83,24 +83,45 @@ const AIPromptDialog: React.FC<AIPromptDialogProps> = ({ isOpen, onClose, onInse
     setResponse('');
 
     try {
-      // Add mode instruction to the prompt
-      const modeInstruction = modifyMode === 'replace'
-        ? 'IMPORTANT: Return ONLY the complete rewritten document content. Do not add explanations or additional text. Format with proper paragraphs - separate each paragraph with TWO newlines (\\n\\n). Use <p> tags for HTML if needed.'
-        : 'IMPORTANT: Return ONLY the new content to add. Do not repeat the existing document. Format with proper paragraphs - separate each paragraph with TWO newlines (\\n\\n). Use <p> tags for HTML if needed.';
+      // Add mode instruction to the prompt based on document type
+      let modeInstruction = '';
+
+      if (mode === 'code') {
+        // For code mode, AI service already handles this
+        modeInstruction = modifyMode === 'replace'
+          ? 'IMPORTANT: Return ONLY the complete rewritten code. Do not add explanations or additional text.'
+          : 'IMPORTANT: Return ONLY the new code to add. Do not repeat the existing code.';
+      } else if (mode === 'markdown') {
+        modeInstruction = modifyMode === 'replace'
+          ? 'IMPORTANT: Return ONLY the complete rewritten Markdown content. Do not add explanations or additional text.'
+          : 'IMPORTANT: Return ONLY the new Markdown content to add. Do not repeat the existing content.';
+      } else {
+        // Notes mode
+        modeInstruction = modifyMode === 'replace'
+          ? 'IMPORTANT: Return ONLY the complete rewritten document content. Do not add explanations or additional text. Format with proper paragraphs - separate each paragraph with TWO newlines (\\n\\n). Use <p> tags for HTML if needed.'
+          : 'IMPORTANT: Return ONLY the new content to add. Do not repeat the existing document. Format with proper paragraphs - separate each paragraph with TWO newlines (\\n\\n). Use <p> tags for HTML if needed.';
+      }
 
       const fullPrompt = `${modeInstruction}\n\n${prompt.trim()}`;
 
       let result = await window.electronAPI.ai.sendPrompt(
         documentPath,
         content,
-        fullPrompt
+        fullPrompt,
+        mode,
+        language
       );
 
-      // Convert double newlines to HTML paragraphs for rich text editor
       result = result.trim();
 
-      // If the result doesn't have HTML tags, convert newlines to paragraph tags
-      if (!result.includes('<p>') && !result.includes('<div>')) {
+      // Clean up code mode - remove excessive spacing
+      if (mode === 'code') {
+        // Normalize multiple blank lines to single blank lines (max 2 newlines)
+        result = result.replace(/\n{3,}/g, '\n\n');
+      }
+
+      // Only convert to HTML paragraphs for notes mode
+      if (mode === 'notes' && !result.includes('<p>') && !result.includes('<div>')) {
         // Split by double newlines and wrap each paragraph in <p> tags
         const paragraphs = result.split(/\n\n+/).filter(p => p.trim());
         result = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');

@@ -3,7 +3,7 @@
  * Handles safe execution of code with custom executors
  */
 
-import { exec } from 'child_process';
+import { exec, spawn, ChildProcess } from 'child_process';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -16,6 +16,7 @@ interface ExecutionResult {
 
 class CodeExecutionService {
   private tempDir: string;
+  private runningProcess: ChildProcess | null = null;
 
   constructor() {
     this.tempDir = path.join(os.tmpdir(), 'fintext-code-execution');
@@ -87,13 +88,23 @@ class CodeExecutionService {
    */
   private executeCommand(command: string): Promise<ExecutionResult> {
     return new Promise((resolve) => {
-      exec(command, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+      this.runningProcess = exec(command, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+        this.runningProcess = null;
         if (error) {
-          resolve({
-            output: stdout,
-            error: stderr || error.message,
-            exitCode: error.code || 1,
-          });
+          // Check if it was killed
+          if (error.killed || error.signal === 'SIGTERM' || error.signal === 'SIGKILL') {
+            resolve({
+              output: stdout,
+              error: 'Process was terminated',
+              exitCode: -1,
+            });
+          } else {
+            resolve({
+              output: stdout,
+              error: stderr || error.message,
+              exitCode: error.code || 1,
+            });
+          }
         } else {
           resolve({
             output: stdout,
@@ -103,6 +114,23 @@ class CodeExecutionService {
         }
       });
     });
+  }
+
+  /**
+   * Kill the currently running process
+   */
+  killRunningProcess(): boolean {
+    if (this.runningProcess) {
+      this.runningProcess.kill('SIGTERM');
+      // Force kill after 2 seconds if still running
+      setTimeout(() => {
+        if (this.runningProcess) {
+          this.runningProcess.kill('SIGKILL');
+        }
+      }, 2000);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -177,7 +205,7 @@ class CodeExecutionService {
     const commands: Record<string, string> = {
       javascript: `npm install ${packageName}`,
       typescript: `npm install ${packageName}`,
-      python: `pip install ${packageName}`,
+      python: `pip3 install ${packageName} || pip install ${packageName}`,
       ruby: `gem install ${packageName}`,
       php: `composer require ${packageName}`,
       go: `go get ${packageName}`,

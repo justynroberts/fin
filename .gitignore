@@ -49,3 +49,9 @@ coverage/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Release builds
+release/
+*.dmg
+*.zip
+*.blockmap

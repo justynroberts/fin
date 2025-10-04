@@ -138,7 +138,7 @@ const WorkspaceSidebar: React.FC = () => {
                     <div className="document-title">{doc.title}</div>
                     <div className="document-actions">
                       <span className={`document-type-badge ${doc.mode}`}>
-                        {doc.mode === 'rich-text' && <span className="material-symbols-rounded">format_text_wrap</span>}
+                        {doc.mode === 'notes' && <span className="material-symbols-rounded">format_text_wrap</span>}
                         {doc.mode === 'markdown' && <span className="material-symbols-rounded">article</span>}
                         {doc.mode === 'code' && <span className="material-symbols-rounded">code</span>}
                       </span>
@@ -177,7 +177,7 @@ const WorkspaceSidebar: React.FC = () => {
                   <div className="document-header-row">
                     <div className="document-title">{doc.title}</div>
                     <span className={`document-type-badge ${doc.mode}`}>
-                      {doc.mode === 'rich-text' && <span className="material-symbols-rounded">format_text_wrap</span>}
+                      {doc.mode === 'notes' && <span className="material-symbols-rounded">format_text_wrap</span>}
                       {doc.mode === 'markdown' && <span className="material-symbols-rounded">article</span>}
                       {doc.mode === 'code' && <span className="material-symbols-rounded">code</span>}
                     </span>

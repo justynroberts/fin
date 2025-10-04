@@ -16,6 +16,7 @@ interface DocumentState {
   tags: string[];
 
   // Editor state
+  isActive: boolean;
   isDirty: boolean;
   isSaving: boolean;
   lastSaved: Date | null;
@@ -33,7 +34,7 @@ interface DocumentState {
   canRedo: boolean;
 
   // Actions
-  newDocument: (mode?: EditorMode, title?: string, language?: CodeLanguage) => void;
+  newDocument: (mode?: EditorMode, title?: string, language?: CodeLanguage, templateContent?: string) => void;
   openDocument: (path: string) => Promise<void>;
   setContent: (content: string, skipHistory?: boolean) => void;
   setMode: (mode: EditorMode) => void;
@@ -61,6 +62,7 @@ export const useDocumentStore = create<DocumentState>()(
     mode: 'markdown',
     language: 'plaintext',
     tags: [],
+    isActive: false,
     isDirty: false,
     isSaving: false,
     lastSaved: null,
@@ -74,19 +76,21 @@ export const useDocumentStore = create<DocumentState>()(
     canRedo: false,
 
     // New document
-    newDocument: (mode = 'markdown', title?: string, language?: CodeLanguage) => {
+    newDocument: (mode = 'markdown', title?: string, language?: CodeLanguage, templateContent?: string) => {
+      const content = templateContent || '';
       set({
         path: null,
         title: title || 'Untitled',
-        content: '',
+        content,
         mode,
         language: language || (mode === 'code' ? 'javascript' : 'plaintext'),
         tags: [],
-        isDirty: false,
+        isActive: true,
+        isDirty: templateContent ? true : false, // Mark dirty if using template
         lastSaved: null,
         cursorPosition: null,
         selection: null,
-        history: [''],
+        history: [content],
         historyIndex: 0,
         canUndo: false,
         canRedo: false,
@@ -108,6 +112,7 @@ export const useDocumentStore = create<DocumentState>()(
             mode: docMeta.mode,
             language: (docMeta.language as CodeLanguage) || 'plaintext',
             tags: docMeta.tags,
+            isActive: true,
             isDirty: false,
             lastSaved: new Date(docMeta.modified),
           });
@@ -120,6 +125,7 @@ export const useDocumentStore = create<DocumentState>()(
             mode: 'markdown',
             language: 'plaintext',
             tags: [],
+            isActive: true,
             isDirty: false,
             lastSaved: new Date(),
           });
@@ -280,6 +286,7 @@ export const useDocumentStore = create<DocumentState>()(
         mode: 'markdown',
         language: 'plaintext',
         tags: [],
+        isActive: false,
         isDirty: false,
         lastSaved: null,
         cursorPosition: null,

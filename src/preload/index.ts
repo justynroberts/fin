@@ -58,8 +58,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // AI operations
   ai: {
-    sendPrompt: (documentPath: string, documentContent: string, userPrompt: string) =>
-      ipcRenderer.invoke('ai:send-prompt', documentPath, documentContent, userPrompt),
+    sendPrompt: (documentPath: string, documentContent: string, userPrompt: string, mode: string, language: string) =>
+      ipcRenderer.invoke('ai:send-prompt', documentPath, documentContent, userPrompt, mode, language),
     clearMemory: (documentPath?: string) =>
       ipcRenderer.invoke('ai:clear-memory', documentPath),
     getMemory: (documentPath: string) =>
@@ -70,8 +70,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   code: {
     execute: (code: string, executor: string, language: string) =>
       ipcRenderer.invoke('code:execute', code, executor, language),
+    kill: () =>
+      ipcRenderer.invoke('code:kill'),
     installPackage: (packageName: string, language: string) =>
       ipcRenderer.invoke('code:install-package', packageName, language),
+  },
+
+  // Template operations
+  template: {
+    save: (name: string, mode: string, language: string | undefined, content: string) =>
+      ipcRenderer.invoke('template:save', name, mode, language, content),
+    list: () => ipcRenderer.invoke('template:list'),
+    load: (filename: string) => ipcRenderer.invoke('template:load', filename),
+    delete: (filename: string) => ipcRenderer.invoke('template:delete', filename),
   },
 });
 
@@ -120,7 +131,7 @@ export interface ElectronAPI {
   };
 
   ai: {
-    sendPrompt: (documentPath: string, documentContent: string, userPrompt: string) => Promise<string>;
+    sendPrompt: (documentPath: string, documentContent: string, userPrompt: string, mode: string, language: string) => Promise<string>;
     clearMemory: (documentPath?: string) => Promise<void>;
     getMemory: (documentPath: string) => Promise<any>;
   };
@@ -131,10 +142,18 @@ export interface ElectronAPI {
       error: string | null;
       exitCode: number;
     }>;
+    kill: () => Promise<{ success: boolean }>;
     installPackage: (packageName: string, language: string) => Promise<{
       success: boolean;
       message: string;
     }>;
+  };
+
+  template: {
+    save: (name: string, mode: string, language: string | undefined, content: string) => Promise<{ success: boolean; error?: string }>;
+    list: () => Promise<Array<{ name: string; mode: string; language?: string; created: string; filename: string }>>;
+    load: (filename: string) => Promise<{ success: boolean; content?: string; error?: string }>;
+    delete: (filename: string) => Promise<{ success: boolean; error?: string }>;
   };
 }
 

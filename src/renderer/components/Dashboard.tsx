@@ -16,7 +16,10 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1 className="dashboard-title">FinText</h1>
+        <h1 className="dashboard-title">
+          <span className="material-symbols-rounded dashboard-icon">pets</span>
+          FinText
+        </h1>
         <p className="dashboard-subtitle">{workspace?.name || 'A powerful text editor'}</p>
       </div>
 
@@ -27,21 +30,22 @@ const Dashboard: React.FC = () => {
             <span className="material-symbols-rounded">bolt</span>
             <h2>Create New Document</h2>
           </div>
+          <p className="card-description">FinText supports three editor modes. Choose one to get started:</p>
           <div className="quick-actions">
-            <button className="quick-action-btn" onClick={() => newDocument('markdown')}>
-              <span className="material-symbols-rounded">article</span>
-              <div className="action-title">Markdown</div>
-              <div className="action-desc">Plain text with formatting</div>
-            </button>
             <button className="quick-action-btn" onClick={() => newDocument('notes')}>
               <span className="material-symbols-rounded">format_text_wrap</span>
               <div className="action-title">Notes</div>
-              <div className="action-desc">WYSIWYG formatted notes</div>
+              <div className="action-desc">Rich text editor with visual formatting (like Word)</div>
+            </button>
+            <button className="quick-action-btn" onClick={() => newDocument('markdown')}>
+              <span className="material-symbols-rounded">article</span>
+              <div className="action-title">Markdown</div>
+              <div className="action-desc">Plain text with Markdown syntax and live preview</div>
             </button>
             <button className="quick-action-btn" onClick={() => newDocument('code')}>
               <span className="material-symbols-rounded">code</span>
               <div className="action-title">Code</div>
-              <div className="action-desc">Source code with syntax</div>
+              <div className="action-desc">Code editor with syntax highlighting and execution</div>
             </button>
           </div>
         </div>
@@ -88,7 +92,7 @@ const Dashboard: React.FC = () => {
                 <div key={doc.path} className="recent-doc-item">
                   <span className={`doc-icon ${doc.mode}`}>
                     {doc.mode === 'markdown' && <span className="material-symbols-rounded">article</span>}
-                    {doc.mode === 'rich-text' && <span className="material-symbols-rounded">format_text_wrap</span>}
+                    {doc.mode === 'notes' && <span className="material-symbols-rounded">format_text_wrap</span>}
                     {doc.mode === 'code' && <span className="material-symbols-rounded">code</span>}
                   </span>
                   <div className="doc-info">

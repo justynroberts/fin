@@ -58,7 +58,14 @@ export function registerIpcHandlers(): void {
 
   // Code execution
   ipcMain.handle('code:execute', handleCodeExecute);
+  ipcMain.handle('code:kill', handleCodeKill);
   ipcMain.handle('code:install-package', handleInstallPackage);
+
+  // Template operations
+  ipcMain.handle('template:save', handleSaveTemplate);
+  ipcMain.handle('template:list', handleListTemplates);
+  ipcMain.handle('template:load', handleLoadTemplate);
+  ipcMain.handle('template:delete', handleDeleteTemplate);
 }
 
 /**
@@ -150,7 +157,41 @@ async function handleGetWorkspaceInfo(): Promise<any> {
 }
 
 /**
- * List all documents in workspace
+ * Parse frontmatter from file content
+ */
+function parseFrontmatter(content: string): { metadata: any; content: string } {
+  if (!content.startsWith('---\n')) {
+    return { metadata: {}, content };
+  }
+
+  const endIndex = content.indexOf('\n---\n', 4);
+  if (endIndex === -1) {
+    return { metadata: {}, content };
+  }
+
+  const frontmatterText = content.substring(4, endIndex);
+  const actualContent = content.substring(endIndex + 5);
+
+  // Parse frontmatter (simple key: value format)
+  const metadata: any = {};
+  for (const line of frontmatterText.split('\n')) {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex !== -1) {
+      const key = line.substring(0, colonIndex).trim();
+      const value = line.substring(colonIndex + 1).trim();
+      try {
+        metadata[key] = JSON.parse(value);
+      } catch {
+        metadata[key] = value;
+      }
+    }
+  }
+
+  return { metadata, content: actualContent };
+}
+
+/**
+ * List all documents in workspace (with frontmatter fallback)
  */
 async function handleListDocuments(): Promise<any[]> {
   if (!workspaceService) {
@@ -158,6 +199,49 @@ async function handleListDocuments(): Promise<any[]> {
   }
 
   const metadata = await workspaceService.loadMetadata();
+  const workspacePath = workspaceService['workspacePath'];
+
+  // Also scan for files with frontmatter that might not be in the database
+  const documentsDir = path.join(workspacePath, 'documents');
+  try {
+    const files = await fs.readdir(documentsDir, { recursive: true });
+
+    for (const file of files) {
+      if (typeof file !== 'string') continue;
+
+      const relativePath = `documents/${file}`;
+      const fullPath = path.join(documentsDir, file);
+
+      // Skip if it's a directory
+      const stats = await fs.stat(fullPath);
+      if (stats.isDirectory()) continue;
+
+      // If not in database, try to read frontmatter
+      if (!metadata.documents[relativePath]) {
+        try {
+          const content = await fs.readFile(fullPath, 'utf-8');
+          const { metadata: fileMeta } = parseFrontmatter(content);
+
+          if (fileMeta.title || fileMeta.mode) {
+            // Add to metadata from frontmatter
+            metadata.documents[relativePath] = {
+              id: relativePath.replace(/[^a-zA-Z0-9]/g, '_'),
+              title: fileMeta.title || path.basename(file, path.extname(file)),
+              mode: fileMeta.mode || 'markdown',
+              tags: fileMeta.tags || [],
+              language: fileMeta.language,
+              created: stats.birthtime.toISOString(),
+              modified: stats.mtime.toISOString(),
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to read frontmatter from ${relativePath}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    // Documents directory might not exist yet
+  }
 
   return Object.entries(metadata.documents).map(([path, doc]) => ({
     path,
@@ -166,7 +250,7 @@ async function handleListDocuments(): Promise<any[]> {
 }
 
 /**
- * Read document content
+ * Read document content (strips frontmatter)
  */
 async function handleReadDocument(_event: any, relativePath: string): Promise<string> {
   if (!workspaceService) {
@@ -174,11 +258,22 @@ async function handleReadDocument(_event: any, relativePath: string): Promise<st
   }
 
   const fullPath = path.join(workspaceService['workspacePath'], relativePath);
-  return await fs.readFile(fullPath, 'utf-8');
+  const rawContent = await fs.readFile(fullPath, 'utf-8');
+
+  // Parse and strip frontmatter if present
+  if (rawContent.startsWith('---\n')) {
+    const endIndex = rawContent.indexOf('\n---\n', 4);
+    if (endIndex !== -1) {
+      // Return content after frontmatter
+      return rawContent.substring(endIndex + 5);
+    }
+  }
+
+  return rawContent;
 }
 
 /**
- * Write document content
+ * Write document content with frontmatter metadata
  */
 async function handleWriteDocument(
   _event: any,
@@ -186,7 +281,7 @@ async function handleWriteDocument(
   content: string,
   metadata?: {
     title?: string;
-    mode?: 'rich-text' | 'markdown' | 'code';
+    mode?: 'notes' | 'markdown' | 'code';
     tags?: string[];
     language?: string;
   }
@@ -200,10 +295,26 @@ async function handleWriteDocument(
   // Ensure directory exists
   await fs.mkdir(path.dirname(fullPath), { recursive: true });
 
-  // Write file
-  await fs.writeFile(fullPath, content, 'utf-8');
+  // Build frontmatter
+  let fileContent = content;
+  if (metadata) {
+    const frontmatter = [
+      '---',
+      `title: ${JSON.stringify(metadata.title || path.basename(relativePath, path.extname(relativePath)))}`,
+      `mode: ${metadata.mode || 'markdown'}`,
+      metadata.tags && metadata.tags.length > 0 ? `tags: ${JSON.stringify(metadata.tags)}` : null,
+      metadata.language ? `language: ${metadata.language}` : null,
+      '---',
+      ''
+    ].filter(Boolean).join('\n');
 
-  // Update or add document metadata
+    fileContent = frontmatter + content;
+  }
+
+  // Write file with frontmatter
+  await fs.writeFile(fullPath, fileContent, 'utf-8');
+
+  // Update or add document metadata in database (for backwards compatibility and performance)
   const docMetadata = await workspaceService.loadMetadata();
 
   if (docMetadata.documents[relativePath]) {
@@ -452,9 +563,11 @@ async function handleAISendPrompt(
   _event: any,
   documentPath: string,
   documentContent: string,
-  userPrompt: string
+  userPrompt: string,
+  mode: string,
+  language: string
 ): Promise<string> {
-  return await aiService.sendPrompt(documentPath, documentContent, userPrompt);
+  return await aiService.sendPrompt(documentPath, documentContent, userPrompt, mode, language);
 }
 
 /**
@@ -484,6 +597,14 @@ async function handleCodeExecute(
 }
 
 /**
+ * Kill the currently running code process
+ */
+async function handleCodeKill(): Promise<{ success: boolean }> {
+  const killed = codeExecutionService.killRunningProcess();
+  return { success: killed };
+}
+
+/**
  * Install package for specified language
  */
 async function handleInstallPackage(
@@ -506,4 +627,154 @@ async function handleGetEditorPreferences(): Promise<any> {
  */
 async function handleSetEditorPreferences(_event: any, preferences: any): Promise<void> {
   await settingsService.setEditorPreferences(preferences);
+}
+
+/**
+ * Save current document as a template
+ */
+async function handleSaveTemplate(
+  _event: any,
+  name: string,
+  mode: string,
+  language: string | undefined,
+  content: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!workspaceService) {
+      return { success: false, error: 'No workspace open' };
+    }
+
+    const workspacePath = (workspaceService as any).workspacePath;
+    const templatesDir = path.join(workspacePath, '.fintontext', 'templates');
+
+    // Create templates directory if it doesn't exist
+    await fs.mkdir(templatesDir, { recursive: true });
+
+    // Create template metadata
+    const template = {
+      name,
+      mode,
+      language,
+      created: new Date().toISOString(),
+    };
+
+    // Save template content with metadata as frontmatter
+    const frontmatter = [
+      '---',
+      `name: ${JSON.stringify(name)}`,
+      `mode: ${mode}`,
+      language ? `language: ${language}` : null,
+      `created: ${JSON.stringify(template.created)}`,
+      '---',
+      ''
+    ].filter(Boolean).join('\n');
+
+    const templateContent = frontmatter + content;
+
+    // Generate filename from name (sanitized)
+    const filename = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.template';
+    const templatePath = path.join(templatesDir, filename);
+
+    await fs.writeFile(templatePath, templateContent, 'utf-8');
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+/**
+ * List all templates
+ */
+async function handleListTemplates(): Promise<Array<{ name: string; mode: string; language?: string; created: string; filename: string }>> {
+  try {
+    if (!workspaceService) {
+      return [];
+    }
+
+    const workspacePath = (workspaceService as any).workspacePath;
+    const templatesDir = path.join(workspacePath, '.fintontext', 'templates');
+
+    // Check if templates directory exists
+    try {
+      await fs.access(templatesDir);
+    } catch {
+      return [];
+    }
+
+    const files = await fs.readdir(templatesDir);
+    const templates: Array<{ name: string; mode: string; language?: string; created: string; filename: string }> = [];
+
+    for (const file of files) {
+      if (!file.endsWith('.template')) continue;
+
+      const content = await fs.readFile(path.join(templatesDir, file), 'utf-8');
+      const { metadata } = parseFrontmatter(content);
+
+      if (metadata.name && metadata.mode) {
+        templates.push({
+          name: metadata.name,
+          mode: metadata.mode,
+          language: metadata.language,
+          created: metadata.created,
+          filename: file,
+        });
+      }
+    }
+
+    // Sort by created date (newest first)
+    templates.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+
+    return templates;
+  } catch (error) {
+    console.error('[Templates] Failed to list templates:', error);
+    return [];
+  }
+}
+
+/**
+ * Load template content
+ */
+async function handleLoadTemplate(
+  _event: any,
+  filename: string
+): Promise<{ success: boolean; content?: string; error?: string }> {
+  try {
+    if (!workspaceService) {
+      return { success: false, error: 'No workspace open' };
+    }
+
+    const workspacePath = (workspaceService as any).workspacePath;
+    const templatePath = path.join(workspacePath, '.fintontext', 'templates', filename);
+
+    const rawContent = await fs.readFile(templatePath, 'utf-8');
+    const { content } = parseFrontmatter(rawContent);
+
+    return { success: true, content };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+/**
+ * Delete a template
+ */
+async function handleDeleteTemplate(
+  _event: any,
+  filename: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!workspaceService) {
+      return { success: false, error: 'No workspace open' };
+    }
+
+    const workspacePath = (workspaceService as any).workspacePath;
+    const templatePath = path.join(workspacePath, '.fintontext', 'templates', filename);
+
+    await fs.unlink(templatePath);
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
 }

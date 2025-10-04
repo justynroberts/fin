@@ -9,7 +9,7 @@ import './styles/App.css';
 
 const App: React.FC = () => {
   const { isOpen, openWorkspace, createWorkspace, closeWorkspace } = useWorkspaceStore();
-  const { path: documentPath, title, isDirty, cursorPosition, newDocument, saveDocument, undo, redo, canUndo, canRedo } = useDocumentStore();
+  const { path: documentPath, title, isDirty, cursorPosition, newDocument, saveDocument, undo, redo, canUndo, canRedo, isActive } = useDocumentStore();
   const { applyTheme } = useThemeStore();
   const [showSettings, setShowSettings] = React.useState(false);
   const [showNewDocDialog, setShowNewDocDialog] = React.useState(false);
@@ -195,7 +195,7 @@ const App: React.FC = () => {
 
       <div className="main-content">
         {!zenMode && <WorkspaceSidebar />}
-        {documentPath ? <EditorContainer zenMode={zenMode} onExitZen={() => setZenMode(false)} /> : <Dashboard />}
+        {isActive ? <EditorContainer zenMode={zenMode} onExitZen={() => setZenMode(false)} /> : <Dashboard />}
       </div>
 
       <Settings
@@ -206,8 +206,8 @@ const App: React.FC = () => {
       <NewDocumentDialog
         isOpen={showNewDocDialog}
         onClose={() => setShowNewDocDialog(false)}
-        onCreate={(mode, name, language) => {
-          newDocument(mode, name, language);
+        onCreate={(mode, name, language, templateContent) => {
+          newDocument(mode, name, language, templateContent);
           setShowNewDocDialog(false);
         }}
       />
