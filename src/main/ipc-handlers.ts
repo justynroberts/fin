@@ -260,16 +260,9 @@ async function handleReadDocument(_event: any, relativePath: string): Promise<st
   const fullPath = path.join(workspaceService['workspacePath'], relativePath);
   const rawContent = await fs.readFile(fullPath, 'utf-8');
 
-  // Parse and strip frontmatter if present
-  if (rawContent.startsWith('---\n')) {
-    const endIndex = rawContent.indexOf('\n---\n', 4);
-    if (endIndex !== -1) {
-      // Return content after frontmatter
-      return rawContent.substring(endIndex + 5);
-    }
-  }
-
-  return rawContent;
+  // Parse and strip frontmatter using the helper function
+  const { content } = parseFrontmatter(rawContent);
+  return content;
 }
 
 /**
