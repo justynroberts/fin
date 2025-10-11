@@ -1,10 +1,22 @@
-# Finton
+# 🐾 Finton
 
-A powerful desktop text editor with AI assistance, seamless mode switching, and intelligent organization.
+**A powerful desktop text editor with AI assistance, seamless mode switching, and intelligent organization.**
+
+![Paw Icon](./release-icon.svg)
+
+## 📥 Download
+
+Get the latest version (v1.0.6) for your platform:
+
+- **macOS (Apple Silicon)**: [Download DMG](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6-arm64.dmg) or [ZIP](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6-arm64-mac.zip)
+- **Windows (x64)**: [Download Installer](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText.Setup.1.0.6.exe)
+- **Linux (x64)**: [AppImage](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6.AppImage) or [DEB](https://github.com/justynroberts/fin/releases/download/v1.0.6/finton_1.0.6_amd64.deb)
+
+[View all releases](https://github.com/justynroberts/fin/releases)
 
 > 📸 **Screenshots**: See `docs/screenshots/` directory for application screenshots and UI examples.
 
-## Features
+## ✨ Features
 
 ### 🎨 Three Editor Modes
 - **Notes** - Rich text editor with visual formatting (WYSIWYG)
@@ -49,13 +61,32 @@ A powerful desktop text editor with AI assistance, seamless mode switching, and 
 - Auto-save functionality
 - Zen mode for distraction-free writing (Cmd/Ctrl+\ or ESC to exit)
 
-## Installation
+## 📦 Installation
 
-### macOS
-1. Download the latest release from [Releases](https://github.com/justynroberts/fin/releases)
-2. Open the DMG file or extract the ZIP
-3. Drag Finton to your Applications folder
-4. Launch Finton
+### macOS (Apple Silicon)
+1. Download the [DMG file](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6-arm64.dmg)
+2. Open the DMG and drag Finton to your Applications folder
+3. Launch Finton from Applications
+4. If macOS blocks the app, go to System Settings > Privacy & Security and click "Open Anyway"
+
+### Windows (x64 - Intel/AMD)
+1. Download the [Setup installer](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText.Setup.1.0.6.exe)
+2. Run the installer (you may see a Windows SmartScreen warning - click "More info" then "Run anyway")
+3. Follow the installation wizard
+4. Launch Finton from the Start Menu or Desktop
+
+### Linux (x64)
+
+**AppImage (Universal)**
+1. Download the [AppImage file](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6.AppImage)
+2. Make it executable: `chmod +x FinText-1.0.6.AppImage`
+3. Run it: `./FinText-1.0.6.AppImage`
+
+**Debian/Ubuntu (DEB package)**
+1. Download the [DEB file](https://github.com/justynroberts/fin/releases/download/v1.0.6/finton_1.0.6_amd64.deb)
+2. Install: `sudo dpkg -i finton_1.0.6_amd64.deb`
+3. If dependencies are missing: `sudo apt-get install -f`
+4. Launch from applications menu or run `finton`
 
 ### Build from Source
 ```bash
@@ -76,14 +107,62 @@ npm run build
 npm run package:mac
 ```
 
-## Usage
+## 🚀 Quick Start Guide
 
-### Getting Started
-1. **Create or Open Workspace** - Start by creating a new workspace or opening an existing one
-2. **Create Document** - Click "New Document" and choose your editor mode
-3. **Use Templates** - Select from saved templates or start from blank
-4. **Enable AI** - Configure your AI API key in Settings for AI assistance
-5. **Organize** - Add tags and metadata to keep documents organized
+### First Launch
+
+When you first open Finton, you'll need to create or open a workspace:
+
+1. **Create New Workspace**
+   - Click "Create New Workspace"
+   - Choose a folder location (e.g., `Documents/FintonWorkspace`)
+   - Finton will initialize Git and create the workspace structure
+
+2. **Or Open Existing Workspace**
+   - Click "Open Existing Workspace"
+   - Select a folder that contains Finton documents
+   - Your documents and templates will load automatically
+
+### Creating Your First Document
+
+1. Click the **"New Document"** button (+ icon) in the sidebar
+2. Choose your editor mode:
+   - 🟢 **Notes** - For rich text with formatting (like Google Docs)
+   - 🟢 **Markdown** - For plain text with Markdown syntax
+   - 🟢 **Code** - For programming with syntax highlighting
+3. Add a title and optional tags
+4. Start writing!
+
+### Using AI Assistant
+
+Finton includes powerful AI assistance:
+
+1. **Setup AI** (first time)
+   - Click the ⚙️ Settings icon
+   - Go to "AI Assistant" tab
+   - Choose a provider (Anthropic Claude, OpenAI, OpenRouter, or Ollama)
+   - Enter your API key (not needed for Ollama)
+   - Select a model
+
+2. **Use AI in Documents**
+   - Write some text or select existing text
+   - Press the AI button or use the prompt dialog
+   - Choose "Insert" to add AI content or "Replace" to modify existing text
+   - AI remembers context within each document (if memory is enabled)
+
+### Working with Templates
+
+Save time by creating reusable templates:
+
+1. **Create a Template**
+   - Create a document with your desired structure
+   - Click the 📑 "Save as Template" button
+   - Give it a name (e.g., "Meeting Notes", "Blog Post")
+
+2. **Use a Template**
+   - Click "New Document from Template"
+   - Select your saved template
+   - Finton creates a new document with the template content
 
 ### Keyboard Shortcuts
 - `Cmd/Ctrl + N` - New document
@@ -91,19 +170,14 @@ npm run package:mac
 - `Cmd/Ctrl + Shift + N` - New document dialog (with templates)
 - `Cmd/Ctrl + Z` - Undo
 - `Cmd/Ctrl + Shift + Z` - Redo
-- `Cmd/Ctrl + \` - Toggle Zen mode
+- `Cmd/Ctrl + \` - Toggle Zen mode (press ESC to exit)
 
-### Template Workflow
-1. Create a document with your desired content
-2. Click the "Save as Template" button (bookmark icon)
-3. Name your template
-4. When creating new documents, select from available templates
+### Organizing Documents
 
-### Git Integration
-- Automatic Git initialization for workspaces
-- Commit changes with meaningful messages
-- Sync across machines via remote repository
-- Document metadata travels with files via frontmatter
+- **Tags**: Add tags to documents for easy categorization
+- **Search**: Use full-text search to find content across all documents
+- **Git Integration**: Finton automatically commits changes with Git
+- **Sync**: Push your workspace to GitHub/GitLab to sync across machines
 
 ## Configuration
 

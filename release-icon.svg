@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#000000"/>
+  <g transform="translate(256, 280)">
+    <!-- Main pad (center) -->
+    <ellipse cx="0" cy="0" rx="85" ry="100" fill="#FF69B4"/>
+
+    <!-- Top left toe -->
+    <ellipse cx="-70" cy="-110" rx="45" ry="60" fill="#FF69B4" transform="rotate(-20 -70 -110)"/>
+
+    <!-- Top center-left toe -->
+    <ellipse cx="-25" cy="-130" rx="45" ry="65" fill="#FF69B4" transform="rotate(-5 -25 -130)"/>
+
+    <!-- Top center-right toe -->
+    <ellipse cx="25" cy="-130" rx="45" ry="65" fill="#FF69B4" transform="rotate(5 25 -130)"/>
+
+    <!-- Top right toe -->
+    <ellipse cx="70" cy="-110" rx="45" ry="60" fill="#FF69B4" transform="rotate(20 70 -110)"/>
+  </g>
+</svg>
