@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Black rounded background -->
+  <rect width="1024" height="1024" rx="200" fill="#000000"/>
+
+  <!-- Paw print in pink -->
+  <g transform="translate(512, 560)">
+    <!-- Main pad (center) -->
+    <ellipse cx="0" cy="0" rx="170" ry="200" fill="#FF69B4"/>
+
+    <!-- Top left toe -->
+    <ellipse cx="-140" cy="-220" rx="90" ry="120" fill="#FF69B4" transform="rotate(-20 -140 -220)"/>
+
+    <!-- Top center-left toe -->
+    <ellipse cx="-50" cy="-260" rx="90" ry="130" fill="#FF69B4" transform="rotate(-5 -50 -260)"/>
+
+    <!-- Top center-right toe -->
+    <ellipse cx="50" cy="-260" rx="90" ry="130" fill="#FF69B4" transform="rotate(5 50 -260)"/>
+
+    <!-- Top right toe -->
+    <ellipse cx="140" cy="-220" rx="90" ry="120" fill="#FF69B4" transform="rotate(20 140 -220)"/>
+  </g>
+</svg>
