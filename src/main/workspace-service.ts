@@ -46,7 +46,7 @@ export class WorkspaceService {
 
   constructor(workspacePath: string) {
     this.workspacePath = workspacePath;
-    this.metadataPath = path.join(workspacePath, '.fintontext-metadata.json');
+    this.metadataPath = path.join(workspacePath, '.finton-metadata.json');
     this.gitService = new GitService();
   }
 
@@ -57,8 +57,12 @@ export class WorkspaceService {
     // Initialize Git
     await this.gitService.initWorkspace(this.workspacePath);
 
+    // Ensure .finton directory exists before creating database
+    const fintonDir = path.join(this.workspacePath, '.finton');
+    await fs.mkdir(fintonDir, { recursive: true });
+
     // Initialize SQLite database for search
-    const dbPath = path.join(this.workspacePath, '.fintontext', 'index.db');
+    const dbPath = path.join(fintonDir, 'index.db');
     this.db = new Database(dbPath);
 
     // Create search tables
@@ -213,22 +217,37 @@ export class WorkspaceService {
   async deleteDocument(relativePath: string): Promise<void> {
     const metadata = await this.loadMetadata();
     const doc = metadata.documents[relativePath];
+    const fullPath = path.join(this.workspacePath, relativePath);
 
-    if (!doc) {
-      throw new Error(`Document not found: ${relativePath}`);
+    // Check if file exists
+    try {
+      await fs.access(fullPath);
+    } catch {
+      // File doesn't exist - just clean up metadata if present
+      if (doc) {
+        delete metadata.documents[relativePath];
+        await this.saveMetadata(metadata);
+        await this.removeFromIndex(relativePath);
+        await this.rebuildTagCounts();
+      }
+      return;
     }
 
-    delete metadata.documents[relativePath];
+    // Delete from metadata if present
+    if (doc) {
+      delete metadata.documents[relativePath];
+      await this.saveMetadata(metadata);
+      await this.removeFromIndex(relativePath);
+      await this.rebuildTagCounts();
+    }
 
-    await this.saveMetadata(metadata);
-    await this.removeFromIndex(relativePath);
-    await this.rebuildTagCounts();
+    // Delete the file
+    await fs.unlink(fullPath);
 
     // Git commit
-    const fullPath = path.join(this.workspacePath, relativePath);
-    await fs.unlink(fullPath);
-    await this.gitService.stage(this.metadataPath);
-    await this.gitService.commit(`Delete: ${doc.title}`);
+    const docTitle = doc?.title || path.basename(relativePath);
+    await this.gitService.stage([fullPath, this.metadataPath]);
+    await this.gitService.commit(`Delete: ${docTitle}`);
   }
 
   /**

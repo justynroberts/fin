@@ -19,7 +19,7 @@ const PROMPT_HISTORY_KEY = 'ai-prompt-history';
 const MAX_HISTORY_ITEMS = 10;
 
 const AIPromptDialog: React.FC<AIPromptDialogProps> = ({ isOpen, onClose, onInsert, onReplace, onReplaceSelection, onOpenSettings }) => {
-  const { path: documentPath, content, selection, mode, language } = useDocumentStore();
+  const { path: documentPath, title, content, selection, mode, language, isActive } = useDocumentStore();
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -73,7 +73,7 @@ const AIPromptDialog: React.FC<AIPromptDialogProps> = ({ isOpen, onClose, onInse
       return;
     }
 
-    if (!documentPath) {
+    if (!isActive) {
       setError('No document open');
       return;
     }
@@ -104,8 +104,11 @@ const AIPromptDialog: React.FC<AIPromptDialogProps> = ({ isOpen, onClose, onInse
 
       const fullPrompt = `${modeInstruction}\n\n${prompt.trim()}`;
 
+      // Use documentPath if available, otherwise use title as identifier for unsaved docs
+      const docIdentifier = documentPath || `unsaved:${title}`;
+
       let result = await window.electronAPI.ai.sendPrompt(
-        documentPath,
+        docIdentifier,
         content,
         fullPrompt,
         mode,
@@ -171,11 +174,12 @@ const AIPromptDialog: React.FC<AIPromptDialogProps> = ({ isOpen, onClose, onInse
   };
 
   const handleClearMemory = async () => {
-    if (!documentPath) return;
+    if (!isActive) return;
 
     if (confirm('Are you sure you want to clear the conversation memory for this document?')) {
       try {
-        await window.electronAPI.ai.clearMemory(documentPath);
+        const docIdentifier = documentPath || `unsaved:${title}`;
+        await window.electronAPI.ai.clearMemory(docIdentifier);
         alert('Memory cleared successfully');
       } catch (err) {
         alert('Failed to clear memory: ' + (err as Error).message);

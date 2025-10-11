@@ -108,7 +108,7 @@ body {
   color: var(--color-foreground);
   cursor: pointer;
   border-radius: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
@@ -170,7 +170,7 @@ body {
   color: var(--color-foreground);
   font-size: 13px;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   text-align: left;
   cursor: pointer;
   border-radius: 6px;
@@ -293,7 +293,7 @@ body {
   border-radius: 16px;
   border: none;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   position: relative;
@@ -457,7 +457,7 @@ body {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   transition: all 0.15s ease;
   letter-spacing: 0.3px;
   display: inline-flex;

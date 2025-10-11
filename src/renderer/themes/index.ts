@@ -1,5 +1,5 @@
 /**
- * Built-in Themes for FintonText
+ * Built-in Themes for Finton
  *
  * Includes professional themes inspired by popular editors
  */
@@ -792,4 +792,4 @@ export function getDarkThemes(): Theme[] {
 /**
  * Default theme
  */
-export const defaultTheme = githubLight;
+export const defaultTheme = gruvboxDark;

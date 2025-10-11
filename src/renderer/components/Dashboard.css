@@ -15,7 +15,7 @@
   font-weight: 700;
   color: var(--color-foreground);
   margin: 0 0 var(--space-sm) 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -30,7 +30,7 @@
   font-size: 16px;
   color: var(--color-secondary);
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .dashboard-grid {
@@ -83,7 +83,7 @@
   font-weight: 600;
   color: var(--color-foreground);
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .card-description {
@@ -111,7 +111,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   text-align: center;
   min-height: 120px;
 }
@@ -133,7 +133,7 @@
 }
 
 .quick-action-btn .material-symbols-rounded {
-  font-size: 48px;
+  font-size: 32px;
   color: var(--color-primary);
   transition: color 0.15s ease;
 }
@@ -168,14 +168,14 @@
   font-size: 32px;
   font-weight: 700;
   color: var(--color-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .stat-label {
   font-size: 12px;
   color: var(--color-secondary);
   margin-top: var(--space-xs);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .recent-docs {
@@ -245,13 +245,13 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .doc-date {
   font-size: 12px;
   color: var(--color-secondary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .popular-tags {
@@ -273,7 +273,7 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .tag-count {
@@ -282,7 +282,7 @@
   background: var(--color-active);
   padding: 2px 8px;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .empty-state-small {
@@ -290,5 +290,5 @@
   text-align: center;
   color: var(--color-secondary);
   font-size: 13px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }

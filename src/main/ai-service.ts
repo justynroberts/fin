@@ -117,6 +117,9 @@ Remember: Return ONLY raw ${language} code, nothing else.`
       case 'openrouter':
         response = await this.callOpenRouter(config, messages);
         break;
+      case 'ollama':
+        response = await this.callOllama(config, messages);
+        break;
       default:
         throw new Error(`Unknown provider: ${config.provider}`);
     }
@@ -223,8 +226,8 @@ Remember: Return ONLY raw ${language} code, nothing else.`
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${config.openrouterApiKey}`,
-        'HTTP-Referer': 'https://github.com/fintontext/fintontext',
-        'X-Title': 'FintonText',
+        'HTTP-Referer': 'https://github.com/finton/finton',
+        'X-Title': 'Finton',
       },
       body: JSON.stringify({
         model: config.model || 'anthropic/claude-3.5-sonnet',
@@ -239,6 +242,37 @@ Remember: Return ONLY raw ${language} code, nothing else.`
 
     const data = await response.json() as any;
     return data.choices[0].message.content;
+  }
+
+  private async callOllama(
+    config: AIConfig,
+    messages: Array<{ role: string; content: string }>
+  ): Promise<string> {
+    const baseUrl = config.ollamaBaseUrl || 'http://localhost:11434';
+
+    if (!config.model) {
+      throw new Error('Ollama model not configured. Please specify a model name (e.g., llama2, mistral, codellama)');
+    }
+
+    const response = await fetch(`${baseUrl}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: messages,
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Ollama API error: ${response.status} - ${error}. Make sure Ollama is running at ${baseUrl}`);
+    }
+
+    const data = await response.json() as any;
+    return data.message.content;
   }
 
   async clearMemory(documentPath?: string): Promise<void> {

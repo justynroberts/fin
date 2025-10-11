@@ -58,7 +58,7 @@
   font-size: 20px;
   font-weight: 600;
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .settings-close {
@@ -112,7 +112,7 @@
   color: var(--color-foreground);
   cursor: pointer;
   transition: all 0.15s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   text-align: left;
 }
 
@@ -150,7 +150,7 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .section-desc {
@@ -174,7 +174,7 @@
   font-weight: 600;
   color: var(--color-foreground);
   margin-bottom: var(--space-sm);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .form-input {
@@ -185,7 +185,7 @@
   background: var(--color-background);
   color: var(--color-foreground);
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   outline: none;
   transition: all 0.15s ease;
 }
@@ -335,7 +335,7 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .theme-check {
@@ -361,7 +361,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;

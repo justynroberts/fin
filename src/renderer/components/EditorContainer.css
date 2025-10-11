@@ -17,28 +17,30 @@
   top: var(--space-md);
   right: var(--space-md);
   z-index: 1000;
-  background: var(--color-hover);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: var(--space-sm);
+  background: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: 8px;
+  padding: var(--space-md);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.5;
+  color: white;
+  opacity: 0.9;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 .zen-exit-button:hover {
   opacity: 1;
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-  transform: scale(1.1);
+  background: #0550ae;
+  border-color: #0550ae;
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .zen-exit-button .material-symbols-rounded {
-  font-size: 20px;
+  font-size: 24px;
 }
 
 /* Evernote-style Header */
@@ -152,6 +154,7 @@
 .tag-chip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 4px 8px;
   background: var(--color-primary);
@@ -160,6 +163,8 @@
   font-size: 12px;
   font-weight: 500;
   font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+  vertical-align: middle;
 }
 
 .tag-chip.immutable {
@@ -412,6 +417,9 @@
   gap: 6px;
   transition: all 0.15s ease;
   color: var(--color-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
 }
 
 .ai-button:hover {
@@ -420,6 +428,35 @@
 }
 
 .ai-button .material-symbols-rounded {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--color-primary);
+}
+
+/* Template Button */
+.template-button {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  color: var(--color-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+.template-button:hover {
+  background: var(--color-hover);
+  border-color: #d4a017;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.2);
+}
+
+.template-button .material-symbols-rounded {
+  font-size: 18px;
+  color: #d4a017;
 }

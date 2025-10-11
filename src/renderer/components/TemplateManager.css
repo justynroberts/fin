@@ -1,0 +1,421 @@
+.template-manager-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.template-manager-content {
+  background: var(--color-background);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  height: 80vh;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.template-manager-header {
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.template-manager-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  font-family: 'Space Grotesk', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.template-manager-header h2 .material-symbols-rounded {
+  font-size: 24px;
+  color: var(--color-primary);
+}
+
+.template-manager-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-secondary);
+  transition: all 0.15s ease;
+}
+
+.template-manager-close:hover {
+  background: var(--color-hover);
+  color: var(--color-foreground);
+}
+
+.template-manager-close .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.template-manager-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Template List Panel */
+.template-list-panel {
+  width: 350px;
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.template-list-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.template-list-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm);
+}
+
+.template-item {
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-bottom: var(--space-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--color-background);
+  position: relative;
+}
+
+.template-item:hover {
+  background: var(--color-hover);
+  border-color: var(--color-primary);
+}
+
+.template-item.selected {
+  background: rgba(9, 105, 218, 0.08);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.15);
+}
+
+.template-item-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.template-item-icon {
+  font-size: 20px !important;
+  color: var(--color-secondary);
+}
+
+.template-item.selected .template-item-icon {
+  color: var(--color-primary);
+}
+
+.template-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.template-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  font-family: 'Space Grotesk', sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-item-meta {
+  font-size: 12px;
+  color: var(--color-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-item-date {
+  font-size: 11px;
+  color: var(--color-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+  margin-bottom: var(--space-xs);
+}
+
+.template-item-delete {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-secondary);
+  transition: all 0.15s ease;
+  opacity: 0;
+}
+
+.template-item:hover .template-item-delete {
+  opacity: 1;
+}
+
+.template-item-delete:hover {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.template-item-delete .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.template-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--color-secondary);
+}
+
+.template-empty-state .material-symbols-rounded {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+  opacity: 0.5;
+}
+
+.template-empty-state p {
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-empty-state small {
+  font-size: 12px;
+  opacity: 0.7;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Template Preview Panel */
+.template-preview-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.template-preview-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.template-preview-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-warning {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #ff9800;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-warning .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.template-preview-content {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-lg);
+}
+
+.template-preview-content pre {
+  margin: 0;
+  padding: var(--space-md);
+  background: var(--color-hover);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-foreground);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.template-preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-secondary);
+  text-align: center;
+}
+
+.template-preview-empty .material-symbols-rounded {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+  opacity: 0.5;
+}
+
+.template-preview-empty p {
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-preview-empty small {
+  font-size: 12px;
+  opacity: 0.7;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-preview-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+  color: var(--color-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Delete Confirmation */
+.template-delete-confirm-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.template-delete-confirm {
+  background: var(--color-background);
+  border-radius: 8px;
+  padding: var(--space-xl);
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.template-delete-confirm h3 {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.template-delete-confirm p {
+  margin: 0 0 var(--space-sm) 0;
+  font-size: 14px;
+  color: var(--color-foreground);
+  font-family: 'Space Grotesk', sans-serif;
+  line-height: 1.5;
+}
+
+.template-delete-warning {
+  color: #f44336 !important;
+  font-weight: 500 !important;
+}
+
+.template-delete-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.template-delete-btn {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.template-delete-btn.cancel {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-foreground);
+}
+
+.template-delete-btn.cancel:hover {
+  background: var(--color-hover);
+}
+
+.template-delete-btn.confirm {
+  background: #f44336;
+  border: none;
+  color: white;
+}
+
+.template-delete-btn.confirm:hover {
+  background: #d32f2f;
+}
+
+.template-delete-btn .material-symbols-rounded {
+  font-size: 18px;
+}

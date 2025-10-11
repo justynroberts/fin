@@ -7,6 +7,7 @@ import { WorkspaceService } from './workspace-service';
 import { settingsService } from './settings-service';
 import { aiService } from './ai-service';
 import { codeExecutionService } from './code-execution-service';
+import { parseFrontmatter } from './frontmatter-utils';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -157,40 +158,6 @@ async function handleGetWorkspaceInfo(): Promise<any> {
 }
 
 /**
- * Parse frontmatter from file content
- */
-function parseFrontmatter(content: string): { metadata: any; content: string } {
-  if (!content.startsWith('---\n')) {
-    return { metadata: {}, content };
-  }
-
-  const endIndex = content.indexOf('\n---\n', 4);
-  if (endIndex === -1) {
-    return { metadata: {}, content };
-  }
-
-  const frontmatterText = content.substring(4, endIndex);
-  const actualContent = content.substring(endIndex + 5);
-
-  // Parse frontmatter (simple key: value format)
-  const metadata: any = {};
-  for (const line of frontmatterText.split('\n')) {
-    const colonIndex = line.indexOf(':');
-    if (colonIndex !== -1) {
-      const key = line.substring(0, colonIndex).trim();
-      const value = line.substring(colonIndex + 1).trim();
-      try {
-        metadata[key] = JSON.parse(value);
-      } catch {
-        metadata[key] = value;
-      }
-    }
-  }
-
-  return { metadata, content: actualContent };
-}
-
-/**
  * List all documents in workspace (with frontmatter fallback)
  */
 async function handleListDocuments(): Promise<any[]> {
@@ -288,8 +255,11 @@ async function handleWriteDocument(
   // Ensure directory exists
   await fs.mkdir(path.dirname(fullPath), { recursive: true });
 
+  // Strip any existing frontmatter from content to avoid duplication
+  const { content: cleanContent } = parseFrontmatter(content);
+
   // Build frontmatter
-  let fileContent = content;
+  let fileContent = cleanContent;
   if (metadata) {
     const frontmatter = [
       '---',
@@ -301,7 +271,7 @@ async function handleWriteDocument(
       ''
     ].filter(Boolean).join('\n');
 
-    fileContent = frontmatter + content;
+    fileContent = frontmatter + '\n' + cleanContent;
   }
 
   // Write file with frontmatter
@@ -638,7 +608,11 @@ async function handleSaveTemplate(
     }
 
     const workspacePath = (workspaceService as any).workspacePath;
-    const templatesDir = path.join(workspacePath, '.fintontext', 'templates');
+    const templatesDir = path.join(workspacePath, '.finton', 'templates');
+
+    console.log('[Templates] Saving template:', name);
+    console.log('[Templates] Templates dir:', templatesDir);
+    console.log('[Templates] Content length:', content.length);
 
     // Create templates directory if it doesn't exist
     await fs.mkdir(templatesDir, { recursive: true });
@@ -662,16 +636,22 @@ async function handleSaveTemplate(
       ''
     ].filter(Boolean).join('\n');
 
-    const templateContent = frontmatter + content;
+    const templateContent = frontmatter + '\n' + content;
 
     // Generate filename from name (sanitized)
     const filename = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.template';
     const templatePath = path.join(templatesDir, filename);
 
+    console.log('[Templates] Writing to:', templatePath);
+    console.log('[Templates] Full content length:', templateContent.length);
+
     await fs.writeFile(templatePath, templateContent, 'utf-8');
+
+    console.log('[Templates] Template saved successfully');
 
     return { success: true };
   } catch (error) {
+    console.error('[Templates] Save error:', error);
     return { success: false, error: (error as Error).message };
   }
 }
@@ -682,27 +662,40 @@ async function handleSaveTemplate(
 async function handleListTemplates(): Promise<Array<{ name: string; mode: string; language?: string; created: string; filename: string }>> {
   try {
     if (!workspaceService) {
+      console.log('[Templates] No workspace service');
       return [];
     }
 
     const workspacePath = (workspaceService as any).workspacePath;
-    const templatesDir = path.join(workspacePath, '.fintontext', 'templates');
+    const templatesDir = path.join(workspacePath, '.finton', 'templates');
+
+    console.log('[Templates] Listing from:', templatesDir);
 
     // Check if templates directory exists
     try {
       await fs.access(templatesDir);
     } catch {
+      console.log('[Templates] Templates directory does not exist');
       return [];
     }
 
     const files = await fs.readdir(templatesDir);
+    console.log('[Templates] Found files:', files);
+
     const templates: Array<{ name: string; mode: string; language?: string; created: string; filename: string }> = [];
 
     for (const file of files) {
-      if (!file.endsWith('.template')) continue;
+      if (!file.endsWith('.template')) {
+        console.log('[Templates] Skipping non-template file:', file);
+        continue;
+      }
 
-      const content = await fs.readFile(path.join(templatesDir, file), 'utf-8');
+      const templatePath = path.join(templatesDir, file);
+      const content = await fs.readFile(templatePath, 'utf-8');
+      console.log('[Templates] Read template:', file, 'content length:', content.length);
+
       const { metadata } = parseFrontmatter(content);
+      console.log('[Templates] Parsed metadata:', metadata);
 
       if (metadata.name && metadata.mode) {
         templates.push({
@@ -712,11 +705,15 @@ async function handleListTemplates(): Promise<Array<{ name: string; mode: string
           created: metadata.created,
           filename: file,
         });
+      } else {
+        console.log('[Templates] Skipping template with incomplete metadata:', file);
       }
     }
 
     // Sort by created date (newest first)
     templates.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+
+    console.log('[Templates] Returning', templates.length, 'templates');
 
     return templates;
   } catch (error) {
@@ -738,7 +735,7 @@ async function handleLoadTemplate(
     }
 
     const workspacePath = (workspaceService as any).workspacePath;
-    const templatePath = path.join(workspacePath, '.fintontext', 'templates', filename);
+    const templatePath = path.join(workspacePath, '.finton', 'templates', filename);
 
     const rawContent = await fs.readFile(templatePath, 'utf-8');
     const { content } = parseFrontmatter(rawContent);
@@ -762,7 +759,7 @@ async function handleDeleteTemplate(
     }
 
     const workspacePath = (workspaceService as any).workspacePath;
-    const templatePath = path.join(workspacePath, '.fintontext', 'templates', filename);
+    const templatePath = path.join(workspacePath, '.finton', 'templates', filename);
 
     await fs.unlink(templatePath);
 

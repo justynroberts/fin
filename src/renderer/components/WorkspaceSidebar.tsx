@@ -81,7 +81,6 @@ const WorkspaceSidebar: React.FC = () => {
     <div className="workspace-sidebar">
       {/* Header */}
       <div className="sidebar-header">
-        <div className="workspace-name">{workspace?.name || 'No Workspace'}</div>
         <button className="new-doc-btn" onClick={handleNewDocumentClick} title="New Document">
           <span className="material-symbols-rounded">add</span>
         </button>

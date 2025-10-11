@@ -20,10 +20,11 @@ export interface GitConfig {
 }
 
 export interface AIConfig {
-  provider: 'openai' | 'anthropic' | 'openrouter';
+  provider: 'openai' | 'anthropic' | 'openrouter' | 'ollama';
   openaiApiKey: string;
   anthropicApiKey: string;
   openrouterApiKey: string;
+  ollamaBaseUrl: string;
   model: string;
   enableMemory: boolean;
 }
@@ -39,7 +40,7 @@ export interface EditorPreferences {
 
 export interface WorkspaceSettings {
   gitConfig: Omit<GitConfig, 'patToken'>; // No token in file
-  aiConfig: Omit<AIConfig, 'openaiApiKey' | 'anthropicApiKey' | 'openrouterApiKey'>; // No keys in file
+  aiConfig: Omit<AIConfig, 'openaiApiKey' | 'anthropicApiKey' | 'openrouterApiKey' | 'ollamaBaseUrl'>; // No keys or URLs in file
   editorPreferences: EditorPreferences;
   version: string;
 }
@@ -88,6 +89,7 @@ class SettingsService {
           openaiApiKey: '',
           anthropicApiKey: '',
           openrouterApiKey: '',
+          ollamaBaseUrl: 'http://127.0.0.1:11434',
           model: 'claude-3-5-sonnet-20241022',
           enableMemory: true,
         },
@@ -217,16 +219,18 @@ class SettingsService {
       openaiApiKey: '',
       anthropicApiKey: '',
       openrouterApiKey: '',
+      ollamaBaseUrl: 'http://127.0.0.1:11434',
       model: 'claude-3-5-sonnet-20241022',
       enableMemory: true,
     };
 
-    // Merge workspace settings with API keys from app data
+    // Merge workspace settings with API keys and base URLs from app data
     return {
       provider: workspaceAI.provider,
       openaiApiKey: appDataAI.openaiApiKey || '',
       anthropicApiKey: appDataAI.anthropicApiKey || '',
       openrouterApiKey: appDataAI.openrouterApiKey || '',
+      ollamaBaseUrl: appDataAI.ollamaBaseUrl || 'http://127.0.0.1:11434',
       model: workspaceAI.model,
       enableMemory: workspaceAI.enableMemory,
     };
@@ -236,13 +240,14 @@ class SettingsService {
    * Set AI config (splits between workspace and app data)
    */
   async setAIConfig(config: AIConfig): Promise<void> {
-    // Save API keys to app data (only API keys, not provider/model/enableMemory)
+    // Save API keys and base URLs to app data (only sensitive data, not provider/model/enableMemory)
     if (!this.appDataSettings.aiConfig) {
       this.appDataSettings.aiConfig = {
         provider: 'anthropic',
         openaiApiKey: config.openaiApiKey,
         anthropicApiKey: config.anthropicApiKey,
         openrouterApiKey: config.openrouterApiKey,
+        ollamaBaseUrl: config.ollamaBaseUrl,
         model: '',
         enableMemory: false,
       };
@@ -250,6 +255,7 @@ class SettingsService {
       this.appDataSettings.aiConfig.openaiApiKey = config.openaiApiKey;
       this.appDataSettings.aiConfig.anthropicApiKey = config.anthropicApiKey;
       this.appDataSettings.aiConfig.openrouterApiKey = config.openrouterApiKey;
+      this.appDataSettings.aiConfig.ollamaBaseUrl = config.ollamaBaseUrl;
     }
     await this.saveAppDataSettings();
 

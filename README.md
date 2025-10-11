@@ -1,6 +1,8 @@
-# FinText
+# Finton
 
 A powerful desktop text editor with AI assistance, seamless mode switching, and intelligent organization.
+
+> 📸 **Screenshots**: See `docs/screenshots/` directory for application screenshots and UI examples.
 
 ## Features
 
@@ -12,8 +14,10 @@ A powerful desktop text editor with AI assistance, seamless mode switching, and 
 ### 🤖 AI Assistant
 - Generate and modify content with AI
 - Context-aware suggestions
-- Supports Anthropic Claude and OpenAI models
+- Multi-provider support: Anthropic Claude, OpenAI, OpenRouter, and Ollama (local)
 - Built-in memory for contextual conversations
+- Works with unsaved documents
+- Insert or replace modes for content generation
 
 ### 📋 Template System
 - Save any document as a reusable template
@@ -43,15 +47,15 @@ A powerful desktop text editor with AI assistance, seamless mode switching, and 
 - Multiple themes
 - Configurable editor preferences
 - Auto-save functionality
-- Zen mode for distraction-free writing
+- Zen mode for distraction-free writing (Cmd/Ctrl+\ or ESC to exit)
 
 ## Installation
 
 ### macOS
 1. Download the latest release from [Releases](https://github.com/justynroberts/fin/releases)
 2. Open the DMG file or extract the ZIP
-3. Drag FinText to your Applications folder
-4. Launch FinText
+3. Drag Finton to your Applications folder
+4. Launch Finton
 
 ### Build from Source
 ```bash
@@ -105,10 +109,16 @@ npm run package:mac
 
 ### AI Setup
 1. Open Settings (gear icon)
-2. Navigate to AI Configuration
-3. Choose your provider (Anthropic or OpenAI)
-4. Enter your API key
-5. Select your preferred model
+2. Navigate to AI Assistant tab
+3. Choose your provider:
+   - **Anthropic** - Claude models (requires API key)
+   - **OpenAI** - GPT models (requires API key)
+   - **OpenRouter** - Multiple models (requires API key)
+   - **Ollama** - Local LLMs (no API key needed, requires Ollama running)
+4. Enter your API key (if using cloud provider)
+5. For Ollama: Set base URL (default: `http://127.0.0.1:11434`)
+6. Select your preferred model
+7. Enable/disable conversation memory
 
 ### Editor Preferences
 - Auto-save interval
@@ -165,7 +175,7 @@ npm run package:linux     # Linux only
 
 ### Data Storage
 - **Documents** - Stored as files with frontmatter metadata
-- **Templates** - Stored in `.fintontext/templates/` with frontmatter
+- **Templates** - Stored in `.finton/templates/` with frontmatter
 - **Search Index** - SQLite FTS5 for fast full-text search
 - **Settings** - JSON configuration files
 
@@ -191,14 +201,28 @@ MIT License - see LICENSE file for details
 
 ## Version
 
-Current version: 1.0.4
+Current version: 1.0.6
 
-## Features Added in v1.0.4
-- Template system (save/load/list templates)
-- Frontmatter support for portable metadata
-- Cross-machine sync via Git
-- Notes editor fix
-- Enhanced document organization
+## Changelog
+
+### v1.0.6 (Latest)
+- 🤖 Ollama integration for local LLMs (no API key required)
+- 🔧 AI assistant now works with unsaved documents
+- 🎨 Improved zen mode with ESC key exit
+- 🔄 Fixed RichText editor AI content sync
+- 🌐 IPv4 connection fix for Ollama (127.0.0.1)
+- ⚡ Enhanced AI prompt dialog with insert/replace modes
+
+### v1.0.5
+- 🐛 Fix frontmatter display issue
+- 📝 Update references from 'rich-text' to 'notes'
+
+### v1.0.4
+- 📋 Template system (save/load/list templates)
+- 📄 Frontmatter support for portable metadata
+- 🔄 Cross-machine sync via Git
+- 🔧 Notes editor improvements
+- 🏷️ Enhanced document organization
 
 ---
 

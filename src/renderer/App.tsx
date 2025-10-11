@@ -1,3 +1,4 @@
+// FORCE RELOAD v3 - Template content fix
 import React, { useEffect } from 'react';
 import { useWorkspaceStore, useDocumentStore, useThemeStore } from './store';
 import WorkspaceSidebar from './components/WorkspaceSidebar';
@@ -5,7 +6,10 @@ import EditorContainer from './components/EditorContainer';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import NewDocumentDialog from './components/NewDocumentDialog';
+import TemplateManager from './components/TemplateManager';
 import './styles/App.css';
+
+// Template fix: NewDocumentDialog calls store directly to avoid React stale closure
 
 const App: React.FC = () => {
   const { isOpen, openWorkspace, createWorkspace, closeWorkspace } = useWorkspaceStore();
@@ -13,11 +17,17 @@ const App: React.FC = () => {
   const { applyTheme } = useThemeStore();
   const [showSettings, setShowSettings] = React.useState(false);
   const [showNewDocDialog, setShowNewDocDialog] = React.useState(false);
+  const [showTemplateManager, setShowTemplateManager] = React.useState(false);
   const [zenMode, setZenMode] = React.useState(false);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC to exit zen mode
+      if (e.key === 'Escape' && zenMode) {
+        e.preventDefault();
+        setZenMode(false);
+      }
       // Zen mode (Cmd/Ctrl + \)
       if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
         e.preventDefault();
@@ -32,7 +42,7 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [zenMode]);
 
   // Apply theme on mount
   useEffect(() => {
@@ -43,7 +53,7 @@ const App: React.FC = () => {
     return (
       <div className="app">
         <div className="titlebar">
-          <div className="titlebar-title">FinText</div>
+          <div className="titlebar-title">Finton</div>
         </div>
 
         <div className="main-content">
@@ -53,7 +63,7 @@ const App: React.FC = () => {
                 <span className="material-symbols-rounded welcome-icon">pets</span>
                 <div className="icon-glow"></div>
               </div>
-              <h1 className="welcome-title">FinText</h1>
+              <h1 className="welcome-title">Finton</h1>
               <p className="welcome-subtitle">
                 A powerful text editor with AI assistance, seamless mode switching, and intelligent organization
               </p>
@@ -129,7 +139,8 @@ const App: React.FC = () => {
       {!zenMode && (
         <div className="titlebar">
           <div className="titlebar-title">
-            FintonText {title && `- ${title}`}
+            <span className="material-symbols-rounded" style={{ fontSize: '20px', marginRight: '8px', verticalAlign: 'middle' }}>pets</span>
+            Finton {title && `- ${title}`}
             {isDirty && ' •'}
           </div>
         </div>
@@ -138,9 +149,8 @@ const App: React.FC = () => {
       {!zenMode && (
         <div className="toolbar">
           <div className="toolbar-left">
-            <button className="toolbar-button" onClick={() => newDocument('markdown')} title="Create new markdown document (Cmd/Ctrl+Shift+N for options)">
-              <span className="material-symbols-rounded">note_add</span>
-              New Document
+            <button className="toolbar-button" onClick={() => setShowNewDocDialog(true)} title="Create new document (Cmd/Ctrl+Shift+N)">
+              <span className="material-symbols-rounded">add</span>
             </button>
             <button className="toolbar-button" onClick={async () => {
               await saveDocument();
@@ -176,6 +186,14 @@ const App: React.FC = () => {
           <div className="toolbar-right">
             <button
               className="toolbar-button"
+              onClick={() => setShowTemplateManager(true)}
+              title="Manage Templates"
+            >
+              <span className="material-symbols-rounded">bookmark</span>
+              Templates
+            </button>
+            <button
+              className="toolbar-button"
               onClick={() => setZenMode(true)}
               title="Zen Mode (Cmd/Ctrl+\)"
             >
@@ -206,10 +224,11 @@ const App: React.FC = () => {
       <NewDocumentDialog
         isOpen={showNewDocDialog}
         onClose={() => setShowNewDocDialog(false)}
-        onCreate={(mode, name, language, templateContent) => {
-          newDocument(mode, name, language, templateContent);
-          setShowNewDocDialog(false);
-        }}
+      />
+
+      <TemplateManager
+        isOpen={showTemplateManager}
+        onClose={() => setShowTemplateManager(false)}
       />
 
       {!zenMode && (

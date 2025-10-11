@@ -15,16 +15,52 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [selectedFont, setSelectedFont] = useState('Inter');
+  const isUpdatingRef = useRef(false);
 
+  // Sync content from store to editor (for AI updates, etc.)
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== content) {
-      editorRef.current.innerHTML = content;
+    if (editorRef.current && !isUpdatingRef.current) {
+      const currentHTML = editorRef.current.innerHTML;
+      const normalizedCurrent = currentHTML.replace(/\s+/g, ' ').trim();
+      const normalizedContent = content.replace(/\s+/g, ' ').trim();
+
+      // Only update if content is actually different (normalize whitespace for comparison)
+      if (normalizedCurrent !== normalizedContent) {
+        const selection = window.getSelection();
+        const hadFocus = document.activeElement === editorRef.current;
+        let savedRange: Range | null = null;
+
+        // Save cursor position if editor is focused
+        if (hadFocus && selection && selection.rangeCount > 0) {
+          savedRange = selection.getRangeAt(0).cloneRange();
+        }
+
+        // Update content
+        editorRef.current.innerHTML = content;
+
+        // Restore cursor position if possible
+        if (hadFocus && savedRange) {
+          try {
+            selection?.removeAllRanges();
+            selection?.addRange(savedRange);
+            editorRef.current.focus();
+          } catch (e) {
+            // Cursor restoration failed, just focus the editor
+            editorRef.current.focus();
+          }
+        }
+      }
     }
   }, [content]);
 
   const handleInput = () => {
     if (editorRef.current) {
+      isUpdatingRef.current = true;
       onChange(editorRef.current.innerHTML);
+      // Reset flag after a short delay to allow the update to propagate
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 0);
     }
   };
 

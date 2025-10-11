@@ -1,6 +1,6 @@
 {
-  "appId": "com.fintontext.app",
-  "productName": "FintonText",
+  "appId": "com.finton.app",
+  "productName": "Finton",
   "directories": {
     "output": "release/${version}"
   },

@@ -4,12 +4,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import type { EditorMode } from '../types';
+import { useDocumentStore } from '../store';
 import './NewDocumentDialog.css';
 
 interface NewDocumentDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (mode: EditorMode, name?: string, language?: string, templateContent?: string) => void;
 }
 
 interface Template {
@@ -20,8 +20,9 @@ interface Template {
   filename: string;
 }
 
-const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, onCreate }) => {
-  const [selectedMode, setSelectedMode] = useState<EditorMode>('markdown');
+const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose }) => {
+  const { newDocument } = useDocumentStore();
+  const [selectedMode, setSelectedMode] = useState<EditorMode>('notes');
   const [documentName, setDocumentName] = useState('');
   const [language, setLanguage] = useState('javascript');
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -77,7 +78,7 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedMode, documentName, language]);
+  }, [isOpen, selectedMode, documentName, language, selectedTemplate]);
 
   if (!isOpen) return null;
 
@@ -91,13 +92,15 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
         const result = await window.electronAPI.template.load(selectedTemplate);
         if (result.success) {
           templateContent = result.content;
+        } else {
+          console.error('[NewDocumentDialog] Failed to load template:', result.error);
         }
       } catch (error) {
-        console.error('[NewDocumentDialog] Failed to load template:', error);
+        console.error('[NewDocumentDialog] Exception loading template:', error);
       }
     }
 
-    onCreate(selectedMode, name, lang, templateContent);
+    newDocument(selectedMode, name, lang, templateContent);
     onClose();
   };
 
@@ -105,13 +108,29 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
     setSelectedMode(mode);
   };
 
-  const handleTypeDoubleClick = (mode: EditorMode) => {
+  const handleTypeDoubleClick = async (mode: EditorMode) => {
     setSelectedMode(mode);
     // Small delay to show selection before creating
-    setTimeout(() => {
+    setTimeout(async () => {
       const name = documentName.trim() || undefined;
       const lang = mode === 'code' ? language : undefined;
-      onCreate(mode, name, lang);
+
+      // Load template content if template is selected
+      let templateContent: string | undefined;
+      if (selectedTemplate) {
+        try {
+          const result = await window.electronAPI.template.load(selectedTemplate);
+          if (result.success) {
+            templateContent = result.content;
+          } else {
+            console.error('[NewDocumentDialog] Failed to load template:', result.error);
+          }
+        } catch (error) {
+          console.error('[NewDocumentDialog] Exception loading template:', error);
+        }
+      }
+
+      newDocument(mode, name, lang, templateContent);
       onClose();
     }, 100);
   };
@@ -235,10 +254,13 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
             </div>
           )}
 
-          {/* Template Selection */}
-          {templates.filter(t => t.mode === selectedMode).length > 0 && (
-            <div className="form-group">
-              <label htmlFor="template">Start from Template (optional)</label>
+          {/* Template Section - Always visible */}
+          <div className="form-group template-section">
+            <label>
+              <span className="material-symbols-rounded" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '6px' }}>bookmark</span>
+              Templates {templates.length > 0 && `(${templates.filter(t => t.mode === selectedMode).length} for ${selectedMode})`}
+            </label>
+            {templates.filter(t => t.mode === selectedMode).length > 0 ? (
               <select
                 id="template"
                 className="form-input"
@@ -254,8 +276,13 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
                     </option>
                   ))}
               </select>
-            </div>
-          )}
+            ) : (
+              <div className="template-hint">
+                <span className="material-symbols-rounded">info</span>
+                <span>No templates saved yet. Create a document and click the Template button to save it as a template.</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="new-doc-footer">
@@ -265,7 +292,7 @@ const NewDocumentDialog: React.FC<NewDocumentDialogProps> = ({ isOpen, onClose, 
           </button>
           <button className="new-doc-btn primary" onClick={handleCreate}>
             <span className="material-symbols-rounded">add</span>
-            Create Document
+            Create
           </button>
         </div>
       </div>

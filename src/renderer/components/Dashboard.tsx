@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-header">
         <h1 className="dashboard-title">
           <span className="material-symbols-rounded dashboard-icon">pets</span>
-          FinText
+          Finton
         </h1>
         <p className="dashboard-subtitle">{workspace?.name || 'A powerful text editor'}</p>
       </div>
@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
             <span className="material-symbols-rounded">bolt</span>
             <h2>Create New Document</h2>
           </div>
-          <p className="card-description">FinText supports three editor modes. Choose one to get started:</p>
+          <p className="card-description">Finton supports three editor modes. Choose one to get started:</p>
           <div className="quick-actions">
             <button className="quick-action-btn" onClick={() => newDocument('notes')}>
               <span className="material-symbols-rounded">format_text_wrap</span>

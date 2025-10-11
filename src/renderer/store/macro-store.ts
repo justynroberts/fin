@@ -272,7 +272,7 @@ export const useMacroStore = create<MacroState>()(
       },
     })),
     {
-      name: 'fintontext-macros',
+      name: 'finton-macros',
       partialize: (state) => ({
         macros: state.macros.filter((m) => !m.isBuiltIn), // Don't persist built-in macros
         favoriteMacros: state.favoriteMacros,

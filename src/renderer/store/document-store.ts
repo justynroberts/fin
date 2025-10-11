@@ -77,6 +77,14 @@ export const useDocumentStore = create<DocumentState>()(
 
     // New document
     newDocument: (mode = 'markdown', title?: string, language?: CodeLanguage, templateContent?: string) => {
+      console.log('[DocumentStore] newDocument called with:', JSON.stringify({
+        mode,
+        title,
+        language,
+        templateContentLength: templateContent?.length || 0,
+        hasTemplate: !!templateContent,
+        templateContentPreview: templateContent ? templateContent.substring(0, 50) : 'NO TEMPLATE'
+      }, null, 2));
       const content = templateContent || '';
       set({
         path: null,
@@ -95,6 +103,8 @@ export const useDocumentStore = create<DocumentState>()(
         canUndo: false,
         canRedo: false,
       });
+      console.log('[DocumentStore] Document created with content length:', content.length);
+      console.log('[DocumentStore] Content preview (first 50 chars):', content.substring(0, 50));
     },
 
     // Open document

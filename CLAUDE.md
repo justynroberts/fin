@@ -4,12 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FintonText is an Electron-based desktop text editor that seamlessly switches between three editing modes:
-- **Rich Text**: WYSIWYG editing with formatting (using Slate.js)
+Finton is an Electron-based desktop text editor that seamlessly switches between three editing modes:
+- **Notes**: WYSIWYG editing with visual formatting (using Slate.js)
 - **Markdown**: Markdown editing with live preview
-- **Code**: Syntax-highlighted code editing (using Monaco Editor)
+- **Code**: Syntax-highlighted code editing with execution support (using Monaco Editor)
 
-Key features include a macro recording system, theming, and multi-format export (PDF, HTML, Markdown, DOCX, etc.).
+Key features include:
+- AI assistant integration (Anthropic Claude, OpenAI, OpenRouter)
+- Template system for reusable document structures
+- Git-based version control and workspace sync
+- Frontmatter-based metadata (portable across machines)
+- Full-text search with SQLite FTS5
+- Code execution in editor
+- Macro recording system
+- Multi-format export (PDF, HTML, Markdown, DOCX, etc.)
 
 ## Development Commands
 
@@ -76,42 +84,74 @@ FintonText follows Electron's multi-process architecture:
 **State Management**:
 - **Zustand** for global state (lightweight, minimal boilerplate)
 - **Immer** for immutable updates
-- Separate stores for: documents, themes, macros, settings
+- Separate stores for: documents, workspace, themes, macros
 
 **Editor Strategy**:
-Each editor mode implements a common interface allowing seamless switching:
-- Rich Text → `Slate.js` (full control over document model)
-- Markdown → `Monaco Editor` with markdown language + preview
-- Code → `Monaco Editor` (VS Code's editor)
+Each editor mode is independent (no conversion between modes):
+- Notes → `Slate.js` (full control over document model)
+- Markdown → `Monaco Editor` with markdown language + live preview
+- Code → `Monaco Editor` (VS Code's editor) with execution capability
 
-**Conversion System**:
-Content converter service handles mode transitions:
-- Maintains a canonical internal format
-- Converts to/from each editor's native format
-- Preserves formatting where possible
-- Documents conversion losses
+**Document Storage**:
+- Documents stored as plain files in workspace directory
+- Metadata stored as YAML frontmatter in each document
+- SQLite FTS5 database for full-text search indexing
+- Git for version control and cross-machine sync
+
+**AI Integration**:
+- Multi-provider support (Anthropic, OpenAI, OpenRouter)
+- Conversation memory per document
+- Mode-aware prompting (different strategies for notes/markdown/code)
+- Configurable via Settings dialog
 
 ### Directory Structure
 
 ```
 src/
-├── main/               # Electron main process
-│   ├── index.ts       # Entry point, window management
-│   └── (future: file-operations, menu-manager, ipc-handlers)
+├── main/                    # Electron main process
+│   ├── index.ts            # Entry point, window management
+│   ├── ipc-handlers.ts     # IPC communication handlers
+│   ├── workspace-service.ts # Document management, search (SQLite FTS5)
+│   ├── git-service.ts      # Git operations wrapper
+│   ├── ai-service.ts       # AI provider integration
+│   ├── code-execution-service.ts # Code execution engine
+│   └── settings-service.ts # Application settings
 ├── preload/
-│   └── index.ts       # IPC bridge, context isolation
-├── renderer/           # React application
-│   ├── App.tsx        # Root component
-│   ├── index.tsx      # React entry point
-│   ├── components/    # UI components (toolbars, sidebars, dialogs)
-│   ├── editors/       # Editor mode implementations
-│   ├── services/      # Business logic (converter, exporter, macro-engine)
-│   ├── store/         # Zustand stores
-│   ├── types/         # TypeScript definitions
-│   └── styles/        # CSS files
-├── shared/            # Code shared between processes (future)
-└── (future: tests integrated with implementation)
+│   └── index.ts            # IPC bridge, context isolation
+├── renderer/                # React application
+│   ├── App.tsx             # Root component
+│   ├── index.tsx           # React entry point
+│   ├── components/         # UI components
+│   │   ├── Dashboard.tsx
+│   │   ├── EditorContainer.tsx
+│   │   ├── WorkspaceSidebar.tsx
+│   │   ├── AIPromptDialog.tsx
+│   │   ├── NewDocumentDialog.tsx
+│   │   └── Settings.tsx
+│   ├── editors/            # Editor mode implementations
+│   │   ├── RichTextEditor.tsx  # Slate-based notes editor
+│   │   ├── MarkdownEditor.tsx  # Monaco + preview
+│   │   └── CodeEditor.tsx      # Monaco with execution
+│   ├── services/
+│   │   └── macro-engine.ts # Macro recording/playback
+│   ├── store/              # Zustand stores
+│   │   ├── document-store.ts
+│   │   ├── workspace-store.ts
+│   │   ├── theme-store.ts
+│   │   └── macro-store.ts
+│   ├── types/              # TypeScript definitions
+│   └── themes/             # Theme definitions
+└── tests/                   # Test suites
+    ├── unit/
+    └── setup.ts
 ```
+
+### Path Aliases
+Vite is configured with the following aliases:
+- `@/` → `./src/`
+- `@renderer/` → `./src/renderer/`
+- `@main/` → `./src/main/`
+- `@shared/` → `./src/shared/`
 
 ### Testing Strategy
 
@@ -162,23 +202,34 @@ const Editor: React.FC<Props> = ({ content, onChange }) => {
 
 ### State Management Pattern
 ```typescript
-// Zustand store
-import create from 'zustand';
+// Zustand store with Immer
+import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 interface DocumentState {
   content: string;
-  mode: 'rich-text' | 'markdown' | 'code';
+  mode: 'notes' | 'markdown' | 'code';
+  title: string;
+  tags: string[];
   setContent: (content: string) => void;
-  switchMode: (mode: string) => void;
+  setMode: (mode: EditorMode) => void;
+  addTag: (tag: string) => void;
 }
 
 export const useDocumentStore = create<DocumentState>()(
-  immer((set) => ({
+  immer((set, get) => ({
     content: '',
-    mode: 'rich-text',
-    setContent: (content) => set({ content }),
-    switchMode: (mode) => set({ mode }),
+    mode: 'markdown',
+    title: 'Untitled',
+    tags: [],
+    setContent: (content) => set({ content, isDirty: true }),
+    setMode: (mode) => set({ mode }),
+    addTag: (tag) => {
+      const { tags } = get();
+      if (!tags.includes(tag)) {
+        set({ tags: [...tags, tag] });
+      }
+    },
   }))
 );
 ```
@@ -216,12 +267,63 @@ When implementing a new feature:
 ## Common Patterns
 
 ### Editor Mode Implementation
-Each editor mode should:
-1. Implement common `EditorMode` interface
-2. Handle content serialization/deserialization
-3. Support command execution for macros
-4. Provide conversion to/from other modes
-5. Emit events for macro recording
+Each editor mode component:
+1. Receives `content` and `onChange` props
+2. Manages its own editor instance (Slate or Monaco)
+3. Handles keyboard shortcuts and commands
+4. Supports macro recording via macro store
+5. No conversion between modes (each mode stores content independently)
+
+### Frontmatter Pattern
+Documents use YAML frontmatter for metadata:
+```markdown
+---
+title: "My Document"
+mode: notes
+tags: ["work", "important"]
+language: javascript
+---
+
+Document content starts here...
+```
+
+### Template System
+Templates are stored in `.fintontext/templates/` with frontmatter:
+```typescript
+// Save template
+await window.electronAPI.template.save('template-name', content, metadata);
+
+// List templates (filtered by mode)
+const templates = await window.electronAPI.template.list('notes');
+
+// Load template
+const content = await window.electronAPI.template.load('template-name');
+```
+
+### Search Pattern
+Full-text search uses SQLite FTS5:
+```typescript
+// Search across all documents
+const results = await window.electronAPI.workspace.search('query');
+
+// Search by tag
+const docs = await window.electronAPI.workspace.getDocumentsByTag('work');
+```
+
+### AI Assistant Pattern
+```typescript
+// Send prompt to AI
+const response = await window.electronAPI.ai.sendPrompt(
+  documentPath,
+  currentContent,
+  userPrompt,
+  mode,
+  language
+);
+
+// Clear conversation memory
+await window.electronAPI.ai.clearMemory(documentPath);
+```
 
 ### Theme Application
 Themes use CSS custom properties:
@@ -234,54 +336,104 @@ Themes use CSS custom properties:
 ```
 Theme switching replaces all CSS variables in real-time.
 
-### Macro System
-Macros are JSON arrays of actions:
-```json
-{
-  "actions": [
-    { "type": "insert", "text": "Hello" },
-    { "type": "format", "format": "bold" }
-  ]
-}
-```
+## Project Status
 
-## Project Roadmap
+**Current Version**: 1.0.5
 
-See `plan/03-deliverables.md` for the complete development roadmap. Current phase:
+See `plan/03-deliverables.md` for the complete development roadmap.
 
-**Phase 2: Editor Core** - Implementing the three editor modes and mode switching system.
+**Completed Features**:
+- Three editor modes (Notes, Markdown, Code)
+- AI assistant with multi-provider support
+- Template system
+- Git-based workspace management
+- Frontmatter metadata system
+- Full-text search (SQLite FTS5)
+- Code execution
+- Theme system
+- Tag-based organization
 
 ## Important Constraints
 
 - **Security**: Never bypass Electron security (contextIsolation, etc.)
-- **Performance**: Mode switching must be <100ms
-- **Accessibility**: WCAG 2.1 AA compliance required
-- **Testing**: All features must have tests before merge
-- **Code Quality**: Maintain >80% test coverage
+- **Mode Independence**: Editor modes are independent - no conversion between modes
+- **Workspace Structure**: Documents must be in `documents/` directory within workspace
+- **Frontmatter Required**: All documents must have YAML frontmatter for metadata
+- **Git Integration**: WorkspaceService automatically manages Git commits
+- **Testing**: All features should have tests
+- **Code Quality**: Maintain >80% test coverage for critical paths
 
 ## Key Dependencies
 
-- **Electron 28+**: Desktop framework
-- **React 18+**: UI library
-- **TypeScript 5+**: Type safety
+- **Electron 28**: Desktop framework
+- **React 18**: UI library
+- **TypeScript 5**: Type safety
 - **Vite**: Build tool and dev server
-- **Zustand**: State management
+- **Zustand**: State management (with Immer middleware)
 - **Monaco Editor**: Code/markdown editing
-- **Slate.js**: Rich text editing
+- **Slate.js**: Notes (rich text) editing
+- **Better-SQLite3**: Full-text search database
+- **simple-git**: Git operations
+- **marked**: Markdown rendering
+- **mermaid**: Diagram rendering in markdown
+- **jsPDF**: PDF export
 - **Vitest**: Testing framework
+
+## Workspace Architecture
+
+### Workspace Structure
+```
+workspace-directory/
+├── .git/                          # Git repository
+├── .gitignore                     # Ignores .finton/index.db
+├── .finton/
+│   ├── config.json               # Workspace configuration
+│   ├── index.db                  # SQLite FTS5 search index (local)
+│   └── templates/                # Saved templates
+│       ├── template1.md
+│       └── template2.html
+├── .finton-metadata.json         # Document metadata (synced via Git)
+├── documents/                     # User documents
+│   ├── doc1.md
+│   ├── doc2.html
+│   └── script.js
+└── README.md                      # Workspace description
+```
+
+### Data Flow: Opening a Workspace
+1. User selects workspace directory
+2. `WorkspaceService.init()` initializes Git and SQLite
+3. Reads `.finton-metadata.json` for document metadata
+4. Indexes all documents for full-text search
+5. Renderer displays dashboard with document list
+
+### Data Flow: Saving a Document
+1. User saves document in editor
+2. Content written to file with frontmatter
+3. `WorkspaceService.addDocument()` updates metadata
+4. Document indexed in SQLite for search
+5. Git automatically commits: metadata + document file
 
 ## Debugging
 
 ### Renderer Process
 - Development: DevTools auto-open
 - Production: Cmd/Ctrl+Shift+I to toggle
+- Console logs prefixed with component name: `[Dashboard]`, `[EditorContainer]`
 
 ### Main Process
 - Use `--inspect` flag with electron
 - Connect Chrome DevTools to Node process
+- Logs prefixed with service name: `[Git]`, `[Workspace]`, `[AI]`
 
 ### IPC Issues
 - Check preload script is loaded
-- Verify IPC channel names match
+- Verify IPC channel names match in `preload/index.ts` and `main/ipc-handlers.ts`
 - Check handler exists in main process
 - Validate arguments in both directions
+- Use `console.log` in preload to debug bridging
+
+### Database Issues
+- SQLite database at `.finton/index.db`
+- Use `sqlite3` CLI to inspect: `sqlite3 .finton/index.db`
+- FTS5 queries use MATCH syntax: `SELECT * FROM documents_fts WHERE documents_fts MATCH 'query'`

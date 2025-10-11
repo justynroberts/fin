@@ -12,7 +12,7 @@
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   background: var(--color-background);
 }
@@ -21,7 +21,7 @@
   font-weight: 600;
   font-size: 13px;
   color: var(--color-secondary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   flex: 1;
   display: flex;
   align-items: center;
@@ -72,7 +72,7 @@
   border-radius: 6px;
   background: var(--color-hover);
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 13px;
   outline: none;
   transition: all 0.15s ease;
@@ -109,7 +109,7 @@
   color: var(--color-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -205,7 +205,7 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -265,7 +265,7 @@
   padding: 2px 6px;
   background: rgba(9, 105, 218, 0.08);
   border-radius: 3px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
   border: 1px solid rgba(9, 105, 218, 0.15);
 }
@@ -369,7 +369,7 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .category-count {
@@ -378,7 +378,7 @@
   background: var(--color-active);
   padding: 2px 8px;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .category-documents {
@@ -398,7 +398,7 @@
   color: var(--color-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .category-doc-item .material-symbols-rounded {

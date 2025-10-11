@@ -21,10 +21,11 @@ interface GitConfig {
 }
 
 interface AIConfig {
-  provider: 'openai' | 'anthropic' | 'openrouter';
+  provider: 'openai' | 'anthropic' | 'openrouter' | 'ollama';
   openaiApiKey: string;
   anthropicApiKey: string;
   openrouterApiKey: string;
+  ollamaBaseUrl: string;
   model: string;
   enableMemory: boolean;
 }
@@ -35,8 +36,8 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [gitConfig, setGitConfig] = useState<GitConfig>({
     remoteUrl: '',
     patToken: '',
-    userName: 'FintonText User',
-    userEmail: 'fintontext@localhost',
+    userName: 'Finton User',
+    userEmail: 'finton@localhost',
     autoCommit: true,
     autoPush: false,
   });
@@ -46,6 +47,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     openaiApiKey: '',
     anthropicApiKey: '',
     openrouterApiKey: '',
+    ollamaBaseUrl: 'http://127.0.0.1:11434',
     model: 'claude-3-5-sonnet-20241022',
     enableMemory: true,
   });
@@ -231,11 +233,12 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     className="form-input"
                     value={aiConfig.provider}
                     onChange={(e) => {
-                      const newProvider = e.target.value as 'openai' | 'anthropic' | 'openrouter';
+                      const newProvider = e.target.value as 'openai' | 'anthropic' | 'openrouter' | 'ollama';
                       const defaultModels = {
                         openai: 'gpt-4-turbo-preview',
                         anthropic: 'claude-3-5-sonnet-20241022',
-                        openrouter: 'anthropic/claude-3.5-sonnet'
+                        openrouter: 'anthropic/claude-3.5-sonnet',
+                        ollama: 'llama2'
                       };
                       setAIConfig({
                         ...aiConfig,
@@ -247,6 +250,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     <option value="anthropic">Anthropic (Claude)</option>
                     <option value="openai">OpenAI (GPT)</option>
                     <option value="openrouter">OpenRouter</option>
+                    <option value="ollama">Ollama (Local)</option>
                   </select>
                 </div>
 
@@ -296,6 +300,21 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="form-group">
+                  <label>Ollama Base URL</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={aiConfig.ollamaBaseUrl}
+                    onChange={(e) => setAIConfig({ ...aiConfig, ollamaBaseUrl: e.target.value })}
+                    placeholder="http://127.0.0.1:11434"
+                  />
+                  <span className="form-hint">
+                    <span className="material-symbols-rounded">info</span>
+                    Local Ollama server URL (default: http://127.0.0.1:11434)
+                  </span>
+                </div>
+
+                <div className="form-group">
                   <label>Model</label>
                   <input
                     type="text"
@@ -305,6 +324,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     placeholder={
                       aiConfig.provider === 'openai' ? 'gpt-4-turbo-preview' :
                       aiConfig.provider === 'anthropic' ? 'claude-3-5-sonnet-20241022' :
+                      aiConfig.provider === 'ollama' ? 'llama2' :
                       'anthropic/claude-3.5-sonnet'
                     }
                   />
@@ -313,6 +333,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     {aiConfig.provider === 'openai' && 'e.g., gpt-4-turbo-preview, gpt-3.5-turbo'}
                     {aiConfig.provider === 'anthropic' && 'e.g., claude-3-5-sonnet-20241022, claude-3-opus-20240229'}
                     {aiConfig.provider === 'openrouter' && 'e.g., anthropic/claude-3.5-sonnet, openai/gpt-4'}
+                    {aiConfig.provider === 'ollama' && 'e.g., llama2, mistral, codellama, llama3'}
                   </span>
                 </div>
 

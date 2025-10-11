@@ -32,23 +32,23 @@ export class GitService {
       await this.git.init();
 
       // Set default git user for this repository
-      await this.git.addConfig('user.name', 'FintonText User');
-      await this.git.addConfig('user.email', 'fintontext@localhost');
+      await this.git.addConfig('user.name', 'Finton User');
+      await this.git.addConfig('user.email', 'finton@localhost');
 
       await this.createGitignore();
       await this.createInitialStructure();
-      await this.git.add('.fintontext/*');
+      await this.git.add('.finton/*');
       await this.git.add('.gitignore');
-      await this.git.commit('Initialize FintonText workspace');
+      await this.git.commit('Initialize Finton workspace');
     } else {
       // Ensure git user is configured for existing repos
       try {
         const config = await this.git.listConfig();
         if (!config.values['user.name']) {
-          await this.git.addConfig('user.name', 'FintonText User');
+          await this.git.addConfig('user.name', 'Finton User');
         }
         if (!config.values['user.email']) {
-          await this.git.addConfig('user.email', 'fintontext@localhost');
+          await this.git.addConfig('user.email', 'finton@localhost');
         }
       } catch (error) {
         console.warn('[Git] Could not configure user identity:', error);
@@ -216,9 +216,9 @@ export class GitService {
     if (!this.workspacePath) return;
 
     const gitignorePath = path.join(this.workspacePath, '.gitignore');
-    const content = `# FintonText local files
-.fintontext/index.db
-.fintontext/cache/
+    const content = `# Finton local files
+.finton/index.db
+.finton/cache/
 .DS_Store
 Thumbs.db
 `;
@@ -232,8 +232,8 @@ Thumbs.db
   private async createInitialStructure(): Promise<void> {
     if (!this.workspacePath) return;
 
-    // Create .fintontext directory
-    const fintonDir = path.join(this.workspacePath, '.fintontext');
+    // Create .finton directory
+    const fintonDir = path.join(this.workspacePath, '.finton');
     await fs.mkdir(fintonDir, { recursive: true });
 
     // Create config.json
@@ -263,7 +263,7 @@ Thumbs.db
 
     const metadataPath = path.join(
       this.workspacePath,
-      '.fintontext-metadata.json'
+      '.finton-metadata.json'
     );
     await fs.writeFile(
       metadataPath,
@@ -278,12 +278,12 @@ Thumbs.db
     // Create README
     const readme = `# ${path.basename(this.workspacePath)}
 
-This is a FintonText workspace. Documents are stored in the \`documents/\` directory.
+This is a Finton workspace. Documents are stored in the \`documents/\` directory.
 
 ## Structure
 
-- \`.fintontext/\` - Workspace configuration and local data
-- \`.fintontext-metadata.json\` - Document metadata and tags
+- \`.finton/\` - Workspace configuration and local data
+- \`.finton-metadata.json\` - Document metadata and tags
 - \`documents/\` - Your documents
 
 ## Sync

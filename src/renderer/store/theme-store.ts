@@ -89,7 +89,7 @@ export const useThemeStore = create<ThemeState>()(
       },
     }),
     {
-      name: 'fintontext-theme',
+      name: 'finton-theme',
       partialize: (state) => ({
         currentTheme: state.currentTheme,
         editorFontSize: state.editorFontSize,

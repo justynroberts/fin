@@ -308,6 +308,12 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
       return;
     }
 
+    console.log('[Template] Saving template:', templateName.trim());
+    console.log('[Template] Mode:', mode);
+    console.log('[Template] Language:', language);
+    console.log('[Template] Content length:', content.length);
+    console.log('[Template] Content preview (first 200 chars):', content.substring(0, 200));
+
     try {
       const result = await window.electronAPI.template.save(
         templateName.trim(),
@@ -316,15 +322,19 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
         content
       );
 
+      console.log('[Template] Save result:', JSON.stringify(result, null, 2));
+
       if (result.success) {
         setShowTemplateDialog(false);
         setTemplateName('');
-        alert(`Template "${templateName}" saved successfully!`);
+        console.log('[Template] Template saved successfully!');
+        alert(`✓ Template "${templateName}" saved successfully!`);
       } else {
+        console.error('[Template] Save failed:', result.error);
         alert(`Failed to save template: ${result.error}`);
       }
     } catch (error) {
-      console.error('[Template] Failed to save template:', error);
+      console.error('[Template] Exception during save:', error);
       alert('Failed to save template: ' + (error as Error).message);
     }
   };
@@ -592,6 +602,7 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
             title="AI Assistant"
           >
             <span className="material-symbols-rounded">psychology</span>
+            <span>AI</span>
           </button>
 
           <button
@@ -600,14 +611,16 @@ const EditorContainer: React.FC<EditorContainerProps> = ({ zenMode = false, onEx
             title="Export Document"
           >
             <span className="material-symbols-rounded">download</span>
+            <span>Export</span>
           </button>
 
           <button
-            className="ai-button"
+            className="template-button"
             onClick={() => setShowTemplateDialog(true)}
             title="Save as Template"
           >
             <span className="material-symbols-rounded">bookmark_add</span>
+            <span>Template</span>
           </button>
 
           <div className="header-divider"></div>

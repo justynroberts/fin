@@ -16,12 +16,24 @@ if (process.platform === 'win32') {
 let mainWindow: BrowserWindow | null = null;
 
 const createWindow = (): void => {
+  // Get icon path based on platform
+  const getIconPath = () => {
+    if (process.platform === 'darwin') {
+      return path.join(__dirname, '../../build/icon.icns');
+    } else if (process.platform === 'win32') {
+      return path.join(__dirname, '../../build/icon.ico');
+    } else {
+      return path.join(__dirname, '../../build/icons/512x512.png');
+    }
+  };
+
   // Create the browser window
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    icon: getIconPath(),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -34,22 +46,24 @@ const createWindow = (): void => {
   });
 
   // Load the index.html of the app
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173').catch((err) => {
-      try {
-        console.error('[Main] Failed to load URL:', err);
-      } catch (e) {
-        // Ignore EPIPE errors
-      }
-    });
-    // DevTools can be opened manually with Cmd/Ctrl+Shift+I
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-  }
+  // TEMPORARILY USING PRODUCTION BUILD TO BYPASS BROKEN HMR
+  console.log('[Main] 🔄 Loading from production build:', path.join(__dirname, '../renderer/index.html'));
+  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
   // Show window immediately in development, or wait for ready-to-show in production
   if (process.env.NODE_ENV === 'development') {
     mainWindow.show();
+
+    // Add hard reload shortcut (Cmd/Ctrl+Shift+R)
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if ((input.meta || input.control) && input.shift && input.key.toLowerCase() === 'r') {
+        console.log('[Main] 🔥 HARD RELOAD - Clearing cache and reloading');
+        mainWindow?.webContents.session.clearCache().then(() => {
+          mainWindow?.webContents.reload();
+        });
+        event.preventDefault();
+      }
+    });
   } else {
     mainWindow.once('ready-to-show', () => {
       mainWindow?.show();
@@ -111,6 +125,17 @@ app.commandLine.appendSwitch('enable-web-bluetooth');
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
+  // DEVELOPMENT: Clear all caches to ensure fresh code loads
+  if (process.env.NODE_ENV === 'development') {
+    const session = require('electron').session;
+    console.log('[Main] 🔥 CLEARING ALL CACHES IN DEVELOPMENT MODE');
+    await session.defaultSession.clearCache();
+    await session.defaultSession.clearStorageData({
+      storages: ['appcache', 'cookies', 'filesystem', 'indexdb', 'localstorage', 'shadercache', 'websql', 'serviceworkers', 'cachestorage']
+    });
+    console.log('[Main] ✅ Cache cleared successfully');
+  }
+
   // Initialize settings service
   const { settingsService } = await import('./settings-service');
   await settingsService.init();
