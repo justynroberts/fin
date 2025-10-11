@@ -300,12 +300,16 @@ Remember: Return ONLY raw ${language} code, nothing else.`
     cleaned = cleaned.replace(/```thinking[\s\S]*?```/gi, '');
     cleaned = cleaned.replace(/```think[\s\S]*?```/gi, '');
 
-    // For code mode, remove markdown code fences if present
+    // For code mode, remove ALL markdown code fences
     if (mode === 'code') {
-      // Remove opening fence with optional language
-      cleaned = cleaned.replace(/^```[a-z]*\n/i, '');
-      // Remove closing fence
-      cleaned = cleaned.replace(/\n```$/i, '');
+      // Remove code fences with any language identifier (python, javascript, etc)
+      // This handles: ```python\ncode\n``` or ```\ncode\n```
+      cleaned = cleaned.replace(/```[a-z]*\n([\s\S]*?)\n```/gi, '$1');
+
+      // Also handle single-line fence removal
+      cleaned = cleaned.replace(/^```[a-z]*\n?/gim, '');
+      cleaned = cleaned.replace(/\n?```$/gim, '');
+
       // Trim any extra whitespace
       cleaned = cleaned.trim();
     }
