@@ -292,11 +292,13 @@ Remember: Return ONLY raw ${language} code, nothing else.`
     let cleaned = response;
 
     // Remove thinking blocks that might be in text format
-    // Pattern: <thinking>...</thinking> or similar tags
+    // Pattern: <think>...</think> or <thinking>...</thinking>
+    cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '');
     cleaned = cleaned.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
 
     // Remove markdown thinking blocks
     cleaned = cleaned.replace(/```thinking[\s\S]*?```/gi, '');
+    cleaned = cleaned.replace(/```think[\s\S]*?```/gi, '');
 
     // For code mode, remove markdown code fences if present
     if (mode === 'code') {
