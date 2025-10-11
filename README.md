@@ -2,7 +2,7 @@
 
 **A powerful desktop text editor with AI assistance, seamless mode switching, and intelligent organization.**
 
-![Paw Icon](./release-icon.svg)
+![Finton Hero](./docs/screenshots/hero.svg)
 
 ## 📥 Download
 

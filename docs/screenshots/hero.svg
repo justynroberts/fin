@@ -1,0 +1,62 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Background -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f23;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Pink accent line -->
+  <rect x="0" y="0" width="1200" height="4" fill="#FF69B4"/>
+
+  <!-- Paw Icon (left side) -->
+  <g transform="translate(200, 315)">
+    <!-- Main pad -->
+    <ellipse cx="0" cy="0" rx="50" ry="60" fill="#FF69B4" filter="url(#glow)"/>
+    <!-- Toes -->
+    <ellipse cx="-42" cy="-66" rx="27" ry="36" fill="#FF69B4" transform="rotate(-20 -42 -66)" filter="url(#glow)"/>
+    <ellipse cx="-15" cy="-78" rx="27" ry="39" fill="#FF69B4" transform="rotate(-5 -15 -78)" filter="url(#glow)"/>
+    <ellipse cx="15" cy="-78" rx="27" ry="39" fill="#FF69B4" transform="rotate(5 15 -78)" filter="url(#glow)"/>
+    <ellipse cx="42" cy="-66" rx="27" ry="36" fill="#FF69B4" transform="rotate(20 42 -66)" filter="url(#glow)"/>
+  </g>
+
+  <!-- Text Content -->
+  <text x="400" y="250" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#ffffff">
+    Finton
+  </text>
+  <text x="400" y="310" font-family="Arial, sans-serif" font-size="28" fill="#FF69B4">
+    AI-Powered Desktop Text Editor
+  </text>
+  <text x="400" y="360" font-family="Arial, sans-serif" font-size="20" fill="#b0b0b0">
+    Three editing modes. One powerful tool.
+  </text>
+
+  <!-- Feature Pills -->
+  <g transform="translate(400, 400)">
+    <rect x="0" y="0" width="140" height="40" rx="20" fill="#FF69B4" opacity="0.2"/>
+    <text x="70" y="27" font-family="Arial, sans-serif" font-size="16" fill="#FF69B4" text-anchor="middle">Notes</text>
+
+    <rect x="160" y="0" width="140" height="40" rx="20" fill="#FF69B4" opacity="0.2"/>
+    <text x="230" y="27" font-family="Arial, sans-serif" font-size="16" fill="#FF69B4" text-anchor="middle">Markdown</text>
+
+    <rect x="320" y="0" width="140" height="40" rx="20" fill="#FF69B4" opacity="0.2"/>
+    <text x="390" y="27" font-family="Arial, sans-serif" font-size="16" fill="#FF69B4" text-anchor="middle">Code</text>
+  </g>
+
+  <!-- Download CTA -->
+  <rect x="400" y="480" width="250" height="60" rx="30" fill="#FF69B4"/>
+  <text x="525" y="518" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#000000" text-anchor="middle">Download Now</text>
+
+  <!-- Version badge -->
+  <text x="1150" y="610" font-family="monospace" font-size="14" fill="#666666" text-anchor="end">v1.0.6</text>
+</svg>
