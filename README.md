@@ -66,8 +66,12 @@ Get the latest version (v1.0.6) for your platform:
 ### macOS (Apple Silicon)
 1. Download the [DMG file](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6-arm64.dmg)
 2. Open the DMG and drag Finton to your Applications folder
-3. Launch Finton from Applications
-4. If macOS blocks the app, go to System Settings > Privacy & Security and click "Open Anyway"
+3. **IMPORTANT**: Remove the quarantine flag (app is not code signed):
+   ```bash
+   xattr -cr /Applications/FinText.app
+   ```
+4. Launch Finton from Applications
+5. If macOS still blocks the app, right-click the app and select "Open", then click "Open" in the dialog
 
 ### Windows (x64 - Intel/AMD)
 1. Download the [Setup installer](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText.Setup.1.0.6.exe)
