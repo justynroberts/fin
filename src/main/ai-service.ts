@@ -124,6 +124,9 @@ Remember: Return ONLY raw ${language} code, nothing else.`
         throw new Error(`Unknown provider: ${config.provider}`);
     }
 
+    // Clean up response based on mode
+    response = this.cleanResponse(response, mode);
+
     // Update memory
     if (config.enableMemory) {
       const memory = this.memory.get(documentPath) || {
@@ -180,7 +183,17 @@ Remember: Return ONLY raw ${language} code, nothing else.`
     }
 
     const data = await response.json() as any;
-    return data.content[0].text;
+
+    // Extract only text blocks, filter out thinking blocks
+    let fullText = '';
+    for (const block of data.content) {
+      if (block.type === 'text') {
+        fullText += block.text;
+      }
+      // Skip thinking blocks (block.type === 'thinking')
+    }
+
+    return fullText;
   }
 
   private async callOpenAI(
@@ -273,6 +286,32 @@ Remember: Return ONLY raw ${language} code, nothing else.`
 
     const data = await response.json() as any;
     return data.message.content;
+  }
+
+  private cleanResponse(response: string, mode: string): string {
+    let cleaned = response;
+
+    // Remove thinking blocks that might be in text format
+    // Pattern: <thinking>...</thinking> or similar tags
+    cleaned = cleaned.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+
+    // Remove markdown thinking blocks
+    cleaned = cleaned.replace(/```thinking[\s\S]*?```/gi, '');
+
+    // For code mode, remove markdown code fences if present
+    if (mode === 'code') {
+      // Remove opening fence with optional language
+      cleaned = cleaned.replace(/^```[a-z]*\n/i, '');
+      // Remove closing fence
+      cleaned = cleaned.replace(/\n```$/i, '');
+      // Trim any extra whitespace
+      cleaned = cleaned.trim();
+    }
+
+    // For markdown mode, preserve markdown formatting
+    // For notes mode, preserve all formatting
+
+    return cleaned;
   }
 
   async clearMemory(documentPath?: string): Promise<void> {
