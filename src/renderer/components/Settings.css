@@ -139,10 +139,13 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--space-lg);
+  /* Ensure scrolling works properly */
+  overflow-x: hidden;
 }
 
 .settings-section {
-  max-width: 600px;
+  /* Remove max-width to allow themes to use full width */
+  width: 100%;
 }
 
 .settings-section h3 {
@@ -239,8 +242,9 @@
 
 .theme-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
 }
 
 .theme-card {

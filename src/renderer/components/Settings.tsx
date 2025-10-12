@@ -71,12 +71,20 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
   const [activeTab, setActiveTab] = useState<'git' | 'ai' | 'rss' | 'editor' | 'appearance'>('git');
   const [isSaving, setIsSaving] = useState(false);
+  const panelRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       loadSettings();
     }
   }, [isOpen]);
+
+  // Scroll to top when switching tabs
+  useEffect(() => {
+    if (panelRef.current) {
+      panelRef.current.scrollTop = 0;
+    }
+  }, [activeTab]);
 
   const loadSettings = async () => {
     try {
@@ -194,7 +202,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          <div className="settings-panel">
+          <div className="settings-panel" ref={panelRef}>
             {activeTab === 'git' && (
               <div className="settings-section">
                 <h3>Git Configuration</h3>
