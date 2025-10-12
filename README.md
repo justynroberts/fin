@@ -287,9 +287,11 @@ Current version: 1.0.7
 - 🐾 New pink paw icon design with gradient
 - 🔧 Fixed zen mode exit bug (ESC key now works reliably)
 - 📰 RSS feed integration on dashboard with configurable feeds
-- ✅ Task list with drag-and-drop reordering
+- ✅ Task list with drag-and-drop reordering and completion tracking
+- 🏠 Dashboard navigation button in toolbar (auto-saves document)
 - 🌐 Modern UI improvements with web icons
 - 🔄 Auto-refresh RSS feeds (configurable interval)
+- 📝 Changed task add icon from + to document icon
 
 ### v1.0.6
 - 🤖 Ollama integration for local LLMs (no API key required)

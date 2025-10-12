@@ -21,8 +21,14 @@ const Dashboard: React.FC = () => {
   const [editingText, setEditingText] = useState('');
   const [newTaskText, setNewTaskText] = useState('');
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const recentDocs = documents.slice(0, 5);
+
+  // Filter tasks based on completion status
+  const filteredTasks = showCompleted
+    ? tasks
+    : tasks.filter(task => !task.completed);
 
   // Load tasks from localStorage
   useEffect(() => {
@@ -51,6 +57,14 @@ const Dashboard: React.FC = () => {
 
     setTasks([...tasks, newTask]);
     setNewTaskText('');
+  };
+
+  const toggleTaskComplete = (id: string) => {
+    setTasks(tasks.map(task =>
+      task.id === id
+        ? { ...task, completed: !task.completed }
+        : task
+    ));
   };
 
   const deleteTask = (id: string) => {
@@ -177,9 +191,18 @@ const Dashboard: React.FC = () => {
             <div className="card-header">
               <span className="material-symbols-rounded">checklist</span>
               <h2>Tasks</h2>
+              <button
+                className="task-filter-btn"
+                onClick={() => setShowCompleted(!showCompleted)}
+                title={showCompleted ? "Hide completed tasks" : "Show completed tasks"}
+              >
+                <span className="material-symbols-rounded">
+                  {showCompleted ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
             </div>
             <div className="tasks-list">
-              {tasks.map((task, index) => (
+              {filteredTasks.map((task, index) => (
                 <div
                   key={task.id}
                   className={`task-item ${draggedTaskId === task.id ? 'dragging' : ''}`}
@@ -213,12 +236,30 @@ const Dashboard: React.FC = () => {
                       <div className="task-drag-handle" title="Drag to reorder">
                         <span className="material-symbols-rounded">drag_indicator</span>
                       </div>
-                      <div className="task-text" onClick={() => startEditing(task)}>
+                      <div
+                        className={`task-text ${task.completed ? 'completed' : ''}`}
+                        onClick={() => startEditing(task)}
+                      >
                         {task.text}
                       </div>
-                      <button className="task-btn delete" onClick={() => deleteTask(task.id)} title="Complete/Delete">
-                        <span className="material-symbols-rounded">check_circle</span>
+                      <button
+                        className={`task-btn ${task.completed ? 'uncomplete' : 'complete'}`}
+                        onClick={() => toggleTaskComplete(task.id)}
+                        title={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                      >
+                        <span className="material-symbols-rounded">
+                          {task.completed ? 'radio_button_unchecked' : 'check_circle'}
+                        </span>
                       </button>
+                      {task.completed && (
+                        <button
+                          className="task-btn delete"
+                          onClick={() => deleteTask(task.id)}
+                          title="Delete task"
+                        >
+                          <span className="material-symbols-rounded">delete</span>
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -239,7 +280,7 @@ const Dashboard: React.FC = () => {
                 }}
               />
               <button className="task-add-btn" onClick={addTask} disabled={!newTaskText.trim()}>
-                <span className="material-symbols-rounded">add</span>
+                <span className="material-symbols-rounded">note_add</span>
               </button>
             </div>
           </div>

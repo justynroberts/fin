@@ -155,6 +155,15 @@ const App: React.FC = () => {
       {!zenMode && (
         <div className="toolbar">
           <div className="toolbar-left">
+            <button className="toolbar-button" onClick={async () => {
+              if (isDirty) {
+                await saveDocument();
+              }
+              useDocumentStore.setState({ isActive: false });
+            }} title="Return to dashboard">
+              <span className="material-symbols-rounded">home</span>
+            </button>
+            <div className="toolbar-divider"></div>
             <button className="toolbar-button" onClick={() => setShowNewDocDialog(true)} title="Create new document (Cmd/Ctrl+Shift+N)">
               <span className="material-symbols-rounded">add</span>
             </button>
