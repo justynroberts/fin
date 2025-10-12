@@ -19,12 +19,18 @@ const App: React.FC = () => {
   const [showNewDocDialog, setShowNewDocDialog] = React.useState(false);
   const [showTemplateManager, setShowTemplateManager] = React.useState(false);
   const [zenMode, setZenMode] = React.useState(false);
+  const zenModeRef = React.useRef(zenMode);
+
+  // Keep ref in sync
+  useEffect(() => {
+    zenModeRef.current = zenMode;
+  }, [zenMode]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // ESC to exit zen mode
-      if (e.key === 'Escape' && zenMode) {
+      if (e.key === 'Escape' && zenModeRef.current) {
         e.preventDefault();
         setZenMode(false);
       }
@@ -42,7 +48,7 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [zenMode]);
+  }, []); // Empty deps - event listener won't be recreated
 
   // Apply theme on mount
   useEffect(() => {

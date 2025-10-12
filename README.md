@@ -6,11 +6,11 @@
 
 ## 📥 Download
 
-Get the latest version (v1.0.6) for your platform:
+Get the latest version (v1.0.7) for your platform:
 
-- **macOS (Apple Silicon)**: [Download DMG](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6-arm64.dmg) or [ZIP](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6-arm64-mac.zip)
-- **Windows (x64)**: [Download Installer](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText.Setup.1.0.6.exe)
-- **Linux (x64)**: [AppImage](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6.AppImage) or [DEB](https://github.com/justynroberts/fin/releases/download/v1.0.6/finton_1.0.6_amd64.deb)
+- **macOS (Apple Silicon)**: [Download DMG](https://github.com/justynroberts/fin/releases/download/v1.0.7/FinText-1.0.7-arm64.dmg) or [ZIP](https://github.com/justynroberts/fin/releases/download/v1.0.7/FinText-1.0.7-arm64-mac.zip)
+- **Windows (x64)**: [Download Installer](https://github.com/justynroberts/fin/releases/download/v1.0.7/FinText.Setup.1.0.7.exe)
+- **Linux (x64)**: [AppImage](https://github.com/justynroberts/fin/releases/download/v1.0.7/FinText-1.0.7.AppImage) or [DEB](https://github.com/justynroberts/fin/releases/download/v1.0.7/finton_1.0.7_amd64.deb)
 
 [View all releases](https://github.com/justynroberts/fin/releases)
 
@@ -64,7 +64,7 @@ Get the latest version (v1.0.6) for your platform:
 ## 📦 Installation
 
 ### macOS (Apple Silicon)
-1. Download the [DMG file](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6-arm64.dmg)
+1. Download the [DMG file](https://github.com/justynroberts/fin/releases/download/v1.0.7/FinText-1.0.7-arm64.dmg)
 2. Open the DMG and drag Finton to your Applications folder
 3. **IMPORTANT**: Remove the quarantine flag (app is not code signed):
    ```bash
@@ -74,7 +74,7 @@ Get the latest version (v1.0.6) for your platform:
 5. If macOS still blocks the app, right-click the app and select "Open", then click "Open" in the dialog
 
 ### Windows (x64 - Intel/AMD)
-1. Download the [Setup installer](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText.Setup.1.0.6.exe)
+1. Download the [Setup installer](https://github.com/justynroberts/fin/releases/download/v1.0.7/FinText.Setup.1.0.7.exe)
 2. Run the installer (you may see a Windows SmartScreen warning - click "More info" then "Run anyway")
 3. Follow the installation wizard
 4. Launch Finton from the Start Menu or Desktop
@@ -82,13 +82,13 @@ Get the latest version (v1.0.6) for your platform:
 ### Linux (x64)
 
 **AppImage (Universal)**
-1. Download the [AppImage file](https://github.com/justynroberts/fin/releases/download/v1.0.6/FinText-1.0.6.AppImage)
-2. Make it executable: `chmod +x FinText-1.0.6.AppImage`
-3. Run it: `./FinText-1.0.6.AppImage`
+1. Download the [AppImage file](https://github.com/justynroberts/fin/releases/download/v1.0.7/FinText-1.0.7.AppImage)
+2. Make it executable: `chmod +x FinText-1.0.7.AppImage`
+3. Run it: `./FinText-1.0.7.AppImage`
 
 **Debian/Ubuntu (DEB package)**
-1. Download the [DEB file](https://github.com/justynroberts/fin/releases/download/v1.0.6/finton_1.0.6_amd64.deb)
-2. Install: `sudo dpkg -i finton_1.0.6_amd64.deb`
+1. Download the [DEB file](https://github.com/justynroberts/fin/releases/download/v1.0.7/finton_1.0.7_amd64.deb)
+2. Install: `sudo dpkg -i finton_1.0.7_amd64.deb`
 3. If dependencies are missing: `sudo apt-get install -f`
 4. Launch from applications menu or run `finton`
 
@@ -279,11 +279,19 @@ MIT License - see LICENSE file for details
 
 ## Version
 
-Current version: 1.0.6
+Current version: 1.0.7
 
 ## Changelog
 
-### v1.0.6 (Latest)
+### v1.0.7 (Latest)
+- 🐾 New pink paw icon design with gradient
+- 🔧 Fixed zen mode exit bug (ESC key now works reliably)
+- 📰 RSS feed integration on dashboard with configurable feeds
+- ✅ Task list with drag-and-drop reordering
+- 🌐 Modern UI improvements with web icons
+- 🔄 Auto-refresh RSS feeds (configurable interval)
+
+### v1.0.6
 - 🤖 Ollama integration for local LLMs (no API key required)
 - 🔧 AI assistant now works with unsaved documents
 - 🎨 Improved zen mode with ESC key exit

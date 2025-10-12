@@ -84,6 +84,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     load: (filename: string) => ipcRenderer.invoke('template:load', filename),
     delete: (filename: string) => ipcRenderer.invoke('template:delete', filename),
   },
+
+  // RSS operations
+  rss: {
+    getConfig: () => ipcRenderer.invoke('rss:get-config'),
+    setConfig: (config: any) => ipcRenderer.invoke('rss:set-config', config),
+    fetchFeeds: () => ipcRenderer.invoke('rss:fetch-feeds'),
+    openLink: (url: string) => ipcRenderer.invoke('rss:open-link', url),
+  },
 });
 
 // Type definitions for the exposed API
@@ -154,6 +162,13 @@ export interface ElectronAPI {
     list: () => Promise<Array<{ name: string; mode: string; language?: string; created: string; filename: string }>>;
     load: (filename: string) => Promise<{ success: boolean; content?: string; error?: string }>;
     delete: (filename: string) => Promise<{ success: boolean; error?: string }>;
+  };
+
+  rss: {
+    getConfig: () => Promise<any>;
+    setConfig: (config: any) => Promise<void>;
+    fetchFeeds: () => Promise<any[]>;
+    openLink: (url: string) => Promise<void>;
   };
 }
 

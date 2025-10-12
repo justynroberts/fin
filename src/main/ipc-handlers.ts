@@ -2,11 +2,12 @@
  * IPC handlers for workspace and Git operations
  */
 
-import { ipcMain, dialog } from 'electron';
+import { ipcMain, dialog, shell } from 'electron';
 import { WorkspaceService } from './workspace-service';
 import { settingsService } from './settings-service';
 import { aiService } from './ai-service';
 import { codeExecutionService } from './code-execution-service';
+import { rssService } from './rss-service';
 import { parseFrontmatter } from './frontmatter-utils';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -67,6 +68,12 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('template:list', handleListTemplates);
   ipcMain.handle('template:load', handleLoadTemplate);
   ipcMain.handle('template:delete', handleDeleteTemplate);
+
+  // RSS operations
+  ipcMain.handle('rss:get-config', handleGetRSSConfig);
+  ipcMain.handle('rss:set-config', handleSetRSSConfig);
+  ipcMain.handle('rss:fetch-feeds', handleFetchRSSFeeds);
+  ipcMain.handle('rss:open-link', handleOpenRSSLink);
 }
 
 /**
@@ -767,4 +774,32 @@ async function handleDeleteTemplate(
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }
+}
+
+/**
+ * Get RSS configuration from settings
+ */
+async function handleGetRSSConfig(): Promise<any> {
+  return await settingsService.getRSSConfig();
+}
+
+/**
+ * Save RSS configuration to settings
+ */
+async function handleSetRSSConfig(_event: any, config: any): Promise<void> {
+  await settingsService.setRSSConfig(config);
+}
+
+/**
+ * Fetch all RSS feeds
+ */
+async function handleFetchRSSFeeds(): Promise<any[]> {
+  return await rssService.fetchAllFeeds();
+}
+
+/**
+ * Open RSS article link in external browser
+ */
+async function handleOpenRSSLink(_event: any, url: string): Promise<void> {
+  await shell.openExternal(url);
 }

@@ -1,23 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <!-- Black rounded background -->
-  <rect width="1024" height="1024" rx="200" fill="#000000"/>
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF1493;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF69B4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="pawGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFE4F0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
 
-  <!-- Paw print in pink -->
+  <!-- Pink gradient rounded background -->
+  <rect width="1024" height="1024" rx="200" fill="url(#bgGradient)"/>
+
+  <!-- Paw print in white/light pink -->
   <g transform="translate(512, 560)">
     <!-- Main pad (center) -->
-    <ellipse cx="0" cy="0" rx="170" ry="200" fill="#FF69B4"/>
+    <ellipse cx="0" cy="0" rx="170" ry="200" fill="url(#pawGradient)"/>
 
     <!-- Top left toe -->
-    <ellipse cx="-140" cy="-220" rx="90" ry="120" fill="#FF69B4" transform="rotate(-20 -140 -220)"/>
+    <ellipse cx="-140" cy="-220" rx="90" ry="120" fill="url(#pawGradient)" transform="rotate(-20 -140 -220)"/>
 
     <!-- Top center-left toe -->
-    <ellipse cx="-50" cy="-260" rx="90" ry="130" fill="#FF69B4" transform="rotate(-5 -50 -260)"/>
+    <ellipse cx="-50" cy="-260" rx="90" ry="130" fill="url(#pawGradient)" transform="rotate(-5 -50 -260)"/>
 
     <!-- Top center-right toe -->
-    <ellipse cx="50" cy="-260" rx="90" ry="130" fill="#FF69B4" transform="rotate(5 50 -260)"/>
+    <ellipse cx="50" cy="-260" rx="90" ry="130" fill="url(#pawGradient)" transform="rotate(5 50 -260)"/>
 
     <!-- Top right toe -->
-    <ellipse cx="140" cy="-220" rx="90" ry="120" fill="#FF69B4" transform="rotate(20 140 -220)"/>
+    <ellipse cx="140" cy="-220" rx="90" ry="120" fill="url(#pawGradient)" transform="rotate(20 140 -220)"/>
   </g>
 </svg>

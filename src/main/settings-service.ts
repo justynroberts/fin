@@ -38,10 +38,23 @@ export interface EditorPreferences {
   autoSaveInterval: number;
 }
 
+export interface RSSFeed {
+  id: string;
+  name: string;
+  url: string;
+  enabled: boolean;
+}
+
+export interface RSSConfig {
+  feeds: RSSFeed[];
+  refreshInterval: number; // minutes
+}
+
 export interface WorkspaceSettings {
   gitConfig: Omit<GitConfig, 'patToken'>; // No token in file
   aiConfig: Omit<AIConfig, 'openaiApiKey' | 'anthropicApiKey' | 'openrouterApiKey' | 'ollamaBaseUrl'>; // No keys or URLs in file
   editorPreferences: EditorPreferences;
+  rssConfig: RSSConfig;
   version: string;
 }
 
@@ -129,6 +142,47 @@ class SettingsService {
           lineHeight: 1.6,
           autoSave: true,
           autoSaveInterval: 30000,
+        },
+        rssConfig: {
+          feeds: [
+            {
+              id: '1',
+              name: 'Hacker News',
+              url: 'https://hnrss.org/frontpage',
+              enabled: true,
+            },
+            {
+              id: '2',
+              name: 'TechCrunch',
+              url: 'https://techcrunch.com/feed/',
+              enabled: true,
+            },
+            {
+              id: '3',
+              name: 'The Verge',
+              url: 'https://www.theverge.com/rss/index.xml',
+              enabled: true,
+            },
+            {
+              id: '4',
+              name: 'Ars Technica',
+              url: 'https://feeds.arstechnica.com/arstechnica/index',
+              enabled: true,
+            },
+            {
+              id: '5',
+              name: 'Wired',
+              url: 'https://www.wired.com/feed/rss',
+              enabled: true,
+            },
+            {
+              id: '6',
+              name: 'MIT Technology Review',
+              url: 'https://www.technologyreview.com/feed/',
+              enabled: true,
+            },
+          ],
+          refreshInterval: 1,
         },
         version: '1.0.0',
       };
@@ -299,6 +353,26 @@ class SettingsService {
    */
   async getWorkspaceSettings(): Promise<WorkspaceSettings | null> {
     return this.workspaceSettings;
+  }
+
+  /**
+   * Get RSS config from workspace settings
+   */
+  async getRSSConfig(): Promise<RSSConfig> {
+    return this.workspaceSettings?.rssConfig || {
+      feeds: [],
+      refreshInterval: 30,
+    };
+  }
+
+  /**
+   * Set RSS config in workspace settings
+   */
+  async setRSSConfig(config: RSSConfig): Promise<void> {
+    if (this.workspaceSettings) {
+      this.workspaceSettings.rssConfig = config;
+      await this.saveWorkspaceSettings();
+    }
   }
 }
 

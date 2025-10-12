@@ -396,3 +396,114 @@
 .settings-btn.secondary:hover {
   background: var(--color-hover);
 }
+
+/* RSS Feed Configuration */
+.form-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.add-feed-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.add-feed-btn:hover {
+  background: #0550ae;
+  transform: scale(1.02);
+}
+
+.add-feed-btn .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.empty-feeds {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: var(--color-hover);
+  border-radius: 8px;
+  border: 2px dashed var(--color-border);
+  margin-bottom: var(--space-md);
+}
+
+.empty-feeds .material-symbols-rounded {
+  font-size: 48px;
+  color: var(--color-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.empty-feeds p {
+  margin: 0;
+  color: var(--color-secondary);
+  font-size: 14px;
+}
+
+.empty-hint {
+  font-size: 12px !important;
+  color: var(--color-tertiary) !important;
+}
+
+.rss-feeds-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.rss-feed-item {
+  padding: var(--space-md);
+  background: var(--color-hover);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.remove-feed-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-secondary);
+  transition: all 0.15s ease;
+}
+
+.remove-feed-btn:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.remove-feed-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.feed-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}

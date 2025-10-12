@@ -30,6 +30,18 @@ interface AIConfig {
   enableMemory: boolean;
 }
 
+interface RSSFeed {
+  id: string;
+  name: string;
+  url: string;
+  enabled: boolean;
+}
+
+interface RSSConfig {
+  feeds: RSSFeed[];
+  refreshInterval: number;
+}
+
 const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const { currentTheme, availableThemes, setTheme } = useThemeStore();
 
@@ -52,7 +64,12 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     enableMemory: true,
   });
 
-  const [activeTab, setActiveTab] = useState<'git' | 'ai' | 'editor' | 'appearance'>('git');
+  const [rssConfig, setRSSConfig] = useState<RSSConfig>({
+    feeds: [],
+    refreshInterval: 30,
+  });
+
+  const [activeTab, setActiveTab] = useState<'git' | 'ai' | 'rss' | 'editor' | 'appearance'>('git');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -71,6 +88,10 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       if (aiCfg) {
         setAIConfig(aiCfg);
       }
+      const rssCfg = await window.electronAPI.rss.getConfig();
+      if (rssCfg) {
+        setRSSConfig(rssCfg);
+      }
     } catch (error) {
       console.error('[Settings] Failed to load:', error);
     }
@@ -81,6 +102,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     try {
       await window.electronAPI.settings.setGitConfig(gitConfig);
       await window.electronAPI.settings.setAIConfig(aiConfig);
+      await window.electronAPI.rss.setConfig(rssConfig);
       onClose();
     } catch (error) {
       console.error('[Settings] Failed to save:', error);
@@ -88,6 +110,37 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const addRSSFeed = () => {
+    setRSSConfig({
+      ...rssConfig,
+      feeds: [
+        ...rssConfig.feeds,
+        {
+          id: Date.now().toString(),
+          name: 'New Feed',
+          url: '',
+          enabled: true,
+        },
+      ],
+    });
+  };
+
+  const removeRSSFeed = (id: string) => {
+    setRSSConfig({
+      ...rssConfig,
+      feeds: rssConfig.feeds.filter((feed) => feed.id !== id),
+    });
+  };
+
+  const updateRSSFeed = (id: string, updates: Partial<RSSFeed>) => {
+    setRSSConfig({
+      ...rssConfig,
+      feeds: rssConfig.feeds.map((feed) =>
+        feed.id === id ? { ...feed, ...updates } : feed
+      ),
+    });
   };
 
   if (!isOpen) return null;
@@ -117,6 +170,13 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             >
               <span className="material-symbols-rounded">psychology</span>
               AI Assistant
+            </button>
+            <button
+              className={`settings-tab ${activeTab === 'rss' ? 'active' : ''}`}
+              onClick={() => setActiveTab('rss')}
+            >
+              <span className="material-symbols-rounded">rss_feed</span>
+              RSS Feeds
             </button>
             <button
               className={`settings-tab ${activeTab === 'editor' ? 'active' : ''}`}
@@ -348,6 +408,92 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                   </label>
                   <span className="form-hint">
                     Maintain conversation context across multiple AI prompts
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'rss' && (
+              <div className="settings-section">
+                <h3>RSS Feeds</h3>
+                <p className="section-desc">Configure RSS feeds to display on your dashboard</p>
+
+                <div className="form-group">
+                  <label>Refresh Interval (minutes)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="5"
+                    max="1440"
+                    value={rssConfig.refreshInterval}
+                    onChange={(e) => setRSSConfig({ ...rssConfig, refreshInterval: parseInt(e.target.value) || 30 })}
+                  />
+                  <span className="form-hint">
+                    <span className="material-symbols-rounded">info</span>
+                    How often to refresh feeds (5-1440 minutes)
+                  </span>
+                </div>
+
+                <div className="form-group">
+                  <div className="form-group-header">
+                    <label>RSS Feeds</label>
+                    <button className="add-feed-btn" onClick={addRSSFeed}>
+                      <span className="material-symbols-rounded">add</span>
+                      Add Feed
+                    </button>
+                  </div>
+
+                  {rssConfig.feeds.length === 0 ? (
+                    <div className="empty-feeds">
+                      <span className="material-symbols-rounded">rss_feed</span>
+                      <p>No RSS feeds configured</p>
+                      <p className="empty-hint">Click "Add Feed" to get started</p>
+                    </div>
+                  ) : (
+                    <div className="rss-feeds-list">
+                      {rssConfig.feeds.map((feed) => (
+                        <div key={feed.id} className="rss-feed-item">
+                          <div className="feed-header">
+                            <label className="checkbox-label">
+                              <input
+                                type="checkbox"
+                                checked={feed.enabled}
+                                onChange={(e) => updateRSSFeed(feed.id, { enabled: e.target.checked })}
+                              />
+                              <span>Enabled</span>
+                            </label>
+                            <button
+                              className="remove-feed-btn"
+                              onClick={() => removeRSSFeed(feed.id)}
+                              title="Remove feed"
+                            >
+                              <span className="material-symbols-rounded">delete</span>
+                            </button>
+                          </div>
+                          <div className="feed-inputs">
+                            <input
+                              type="text"
+                              className="form-input"
+                              placeholder="Feed Name"
+                              value={feed.name}
+                              onChange={(e) => updateRSSFeed(feed.id, { name: e.target.value })}
+                            />
+                            <input
+                              type="url"
+                              className="form-input"
+                              placeholder="Feed URL (https://example.com/feed.xml)"
+                              value={feed.url}
+                              onChange={(e) => updateRSSFeed(feed.id, { url: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <span className="form-hint">
+                    <span className="material-symbols-rounded">info</span>
+                    Popular feeds: Hacker News (https://hnrss.org/frontpage), TechCrunch (https://techcrunch.com/feed/)
                   </span>
                 </div>
               </div>
