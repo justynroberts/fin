@@ -95,13 +95,17 @@ Each editor mode is independent (no conversion between modes):
 **Document Storage**:
 - Documents stored as plain files in workspace directory
 - Metadata stored as YAML frontmatter in each document
-- SQLite FTS5 database for full-text search indexing
+- SQLite FTS5 database for full-text search indexing (`.finton/index.db`, not Git-tracked)
 - Git for version control and cross-machine sync
+- Metadata file (`.finton-metadata.json`) tracked in Git for portability
 
 **AI Integration**:
-- Multi-provider support (Anthropic, OpenAI, OpenRouter)
-- Conversation memory per document
+- Multi-provider support (Anthropic, OpenAI, OpenRouter, Ollama)
+- Ollama support for local LLMs (no API key required, default URL: http://127.0.0.1:11434)
+- Conversation memory per document (optional)
 - Mode-aware prompting (different strategies for notes/markdown/code)
+- Works with unsaved documents
+- Insert or replace modes for content generation
 - Configurable via Settings dialog
 
 ### Directory Structure
@@ -115,7 +119,9 @@ src/
 │   ├── git-service.ts      # Git operations wrapper
 │   ├── ai-service.ts       # AI provider integration
 │   ├── code-execution-service.ts # Code execution engine
-│   └── settings-service.ts # Application settings
+│   ├── settings-service.ts # Application settings
+│   ├── rss-service.ts      # RSS feed fetching and parsing
+│   └── frontmatter-utils.ts # YAML frontmatter parsing
 ├── preload/
 │   └── index.ts            # IPC bridge, context isolation
 ├── renderer/                # React application
@@ -127,20 +133,27 @@ src/
 │   │   ├── WorkspaceSidebar.tsx
 │   │   ├── AIPromptDialog.tsx
 │   │   ├── NewDocumentDialog.tsx
-│   │   └── Settings.tsx
+│   │   ├── Settings.tsx
+│   │   ├── ExportDialog.tsx
+│   │   ├── SaveDialog.tsx
+│   │   ├── TemplateManager.tsx
+│   │   └── RSSFeed.tsx
 │   ├── editors/            # Editor mode implementations
 │   │   ├── RichTextEditor.tsx  # Slate-based notes editor
 │   │   ├── MarkdownEditor.tsx  # Monaco + preview
 │   │   └── CodeEditor.tsx      # Monaco with execution
 │   ├── services/
-│   │   └── macro-engine.ts # Macro recording/playback
+│   │   ├── macro-engine.ts # Macro recording/playback
+│   │   └── content-converter.ts # Mode conversion utilities
 │   ├── store/              # Zustand stores
 │   │   ├── document-store.ts
 │   │   ├── workspace-store.ts
 │   │   ├── theme-store.ts
 │   │   └── macro-store.ts
+│   ├── hooks/              # Custom React hooks
 │   ├── types/              # TypeScript definitions
-│   └── themes/             # Theme definitions
+│   ├── themes/             # Theme definitions
+│   └── styles/             # Global CSS styles
 └── tests/                   # Test suites
     ├── unit/
     └── setup.ts
@@ -251,6 +264,17 @@ ipcMain.handle('save-file', async (event, content, path) => {
 const saved = await window.electronAPI.saveFile(content, path);
 ```
 
+## Keyboard Shortcuts
+
+The application supports the following keyboard shortcuts:
+- `Cmd/Ctrl + N` - New document
+- `Cmd/Ctrl + S` - Save document
+- `Cmd/Ctrl + Shift + N` - New document dialog (with templates)
+- `Cmd/Ctrl + Z` - Undo
+- `Cmd/Ctrl + Shift + Z` - Redo
+- `Cmd/Ctrl + \` - Toggle Zen mode
+- `ESC` - Exit Zen mode
+
 ## Feature Implementation Workflow
 
 When implementing a new feature:
@@ -336,15 +360,34 @@ Themes use CSS custom properties:
 ```
 Theme switching replaces all CSS variables in real-time.
 
+### RSS Feed Pattern
+Dashboard includes RSS feed integration:
+```typescript
+// Feeds configured in settings
+const feeds = await window.electronAPI.settings.getRSSFeeds();
+
+// Fetch feed items
+const items = await window.electronAPI.rss.fetchFeed(feed);
+
+// Auto-refresh with configurable interval
+```
+
+### Export Pattern
+Multiple export formats supported:
+```typescript
+// Export document to PDF/HTML/DOCX/Markdown
+await window.electronAPI.export.document(content, format, outputPath);
+```
+
 ## Project Status
 
-**Current Version**: 1.0.5
+**Current Version**: 1.0.7
 
 See `plan/03-deliverables.md` for the complete development roadmap.
 
 **Completed Features**:
 - Three editor modes (Notes, Markdown, Code)
-- AI assistant with multi-provider support
+- AI assistant with multi-provider support (Anthropic, OpenAI, OpenRouter, Ollama)
 - Template system
 - Git-based workspace management
 - Frontmatter metadata system
@@ -352,6 +395,10 @@ See `plan/03-deliverables.md` for the complete development roadmap.
 - Code execution
 - Theme system
 - Tag-based organization
+- RSS feed integration on dashboard
+- Task list with drag-and-drop reordering
+- Zen mode (Cmd/Ctrl+\ or ESC to toggle)
+- Export functionality (PDF, HTML, Markdown, DOCX)
 
 ## Important Constraints
 
@@ -414,6 +461,37 @@ workspace-directory/
 4. Document indexed in SQLite for search
 5. Git automatically commits: metadata + document file
 
+## Installation & Distribution
+
+### macOS Code Signing
+The app is **not code signed**. Users must remove the quarantine flag after installation:
+```bash
+xattr -cr /Applications/FinText.app
+```
+If macOS still blocks the app, right-click and select "Open", then click "Open" in the dialog.
+
+### Build Icon Generation
+Icons are generated from `release-icon.svg`:
+```bash
+npm run generate-icons
+```
+This creates platform-specific icons in the `build/` directory (icon.icns, icon.ico, icon.png).
+
+### Better-SQLite3 Native Module
+The app uses `better-sqlite3` which requires native compilation. The `electron-builder` configuration includes:
+```json
+"extraResources": [
+  {
+    "from": "node_modules/better-sqlite3/build/Release",
+    "to": "better-sqlite3"
+  }
+]
+```
+If you encounter SQLite errors, rebuild native modules:
+```bash
+npm run electron-rebuild
+```
+
 ## Debugging
 
 ### Renderer Process
@@ -425,6 +503,7 @@ workspace-directory/
 - Use `--inspect` flag with electron
 - Connect Chrome DevTools to Node process
 - Logs prefixed with service name: `[Git]`, `[Workspace]`, `[AI]`
+- **Important**: Console logging wrapped in try-catch to prevent EPIPE errors
 
 ### IPC Issues
 - Check preload script is loaded
@@ -437,3 +516,8 @@ workspace-directory/
 - SQLite database at `.finton/index.db`
 - Use `sqlite3` CLI to inspect: `sqlite3 .finton/index.db`
 - FTS5 queries use MATCH syntax: `SELECT * FROM documents_fts WHERE documents_fts MATCH 'query'`
+
+### Ollama Connection Issues
+- Ollama uses IPv4 (127.0.0.1) not IPv6 (::1)
+- Default base URL: `http://127.0.0.1:11434`
+- Verify Ollama is running: `curl http://127.0.0.1:11434/api/tags`

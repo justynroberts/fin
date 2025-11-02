@@ -12,7 +12,7 @@ import './styles/App.css';
 // Template fix: NewDocumentDialog calls store directly to avoid React stale closure
 
 const App: React.FC = () => {
-  const { isOpen, openWorkspace, createWorkspace, closeWorkspace } = useWorkspaceStore();
+  const { isOpen, openWorkspace, openWorkspacePath, createWorkspace, closeWorkspace } = useWorkspaceStore();
   const { path: documentPath, title, isDirty, cursorPosition, newDocument, saveDocument, undo, redo, canUndo, canRedo, isActive } = useDocumentStore();
   const { applyTheme } = useThemeStore();
   const [showSettings, setShowSettings] = React.useState(false);
@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [showTemplateManager, setShowTemplateManager] = React.useState(false);
   const [zenMode, setZenMode] = React.useState(false);
   const zenModeRef = React.useRef(zenMode);
+  const [hasCheckedAutoOpen, setHasCheckedAutoOpen] = React.useState(false);
 
   // Keep ref in sync
   useEffect(() => {
@@ -54,6 +55,40 @@ const App: React.FC = () => {
   useEffect(() => {
     applyTheme();
   }, [applyTheme]);
+
+  // Check for auto-open last workspace on mount
+  useEffect(() => {
+    const checkAutoOpen = async () => {
+      // Only check once, and only if workspace isn't already open
+      if (hasCheckedAutoOpen || isOpen) {
+        return;
+      }
+
+      setHasCheckedAutoOpen(true);
+
+      try {
+        // Check if electronAPI is available
+        if (!window.electronAPI?.settings?.getEditorPreferences) {
+          console.warn('[App] electronAPI not available yet');
+          return;
+        }
+
+        const prefs = await window.electronAPI.settings.getEditorPreferences();
+        // Auto-open if last workspace path exists (regardless of setting)
+        if (prefs?.lastWorkspacePath) {
+          console.log('[App] Auto-opening last workspace:', prefs.lastWorkspacePath);
+          await openWorkspacePath(prefs.lastWorkspacePath);
+        }
+      } catch (error) {
+        console.error('[App] Failed to auto-open workspace:', error);
+        // Continue to show welcome screen on error
+      }
+    };
+
+    // Use a small delay to ensure electronAPI is ready
+    const timer = setTimeout(checkAutoOpen, 100);
+    return () => clearTimeout(timer);
+  }, [hasCheckedAutoOpen, isOpen, openWorkspacePath]);
 
   if (!isOpen) {
     return (

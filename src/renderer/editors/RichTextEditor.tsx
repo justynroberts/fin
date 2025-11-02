@@ -144,9 +144,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
 
   const handleFontChange = (font: string) => {
     setSelectedFont(font);
-    if (editorRef.current) {
-      editorRef.current.style.fontFamily = font;
-    }
+    execCommand('fontName', font);
   };
 
   const fonts = [
@@ -345,7 +343,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         suppressContentEditableWarning
-        style={{ fontFamily: selectedFont }}
       />
     </div>
   );

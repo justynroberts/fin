@@ -133,8 +133,18 @@ export const RSSFeed: React.FC = () => {
                     className="rss-feed-item-compact"
                     onClick={() => handleOpenLink(item.link)}
                   >
-                    <span className="material-symbols-rounded rss-feed-item-icon">language</span>
-                    <h4 className="rss-feed-item-title-compact">{item.title}</h4>
+                    <div className="rss-feed-item-content">
+                      <h4 className="rss-feed-item-title-compact">{item.title}</h4>
+                      {item.description && (
+                        <p className="rss-feed-item-description">{item.description}</p>
+                      )}
+                      <div className="rss-feed-item-meta">
+                        <span className="rss-feed-item-date">{formatDate(item.pubDate)}</span>
+                        {item.author && (
+                          <span className="rss-feed-item-author"> • {item.author}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

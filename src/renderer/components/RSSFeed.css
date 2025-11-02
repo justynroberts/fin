@@ -120,35 +120,44 @@
 
 .rss-feed-item-compact {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   transition: all 0.15s;
   line-height: 1.5;
+  border: 1px solid transparent;
 }
 
 .rss-feed-item-compact:hover {
   background: var(--color-hover);
-  transform: translateX(4px);
+  border-color: var(--color-border);
+  transform: translateX(2px);
 }
 
-.rss-feed-item-icon {
-  font-size: 18px;
-  color: var(--color-fg-tertiary);
-  flex-shrink: 0;
-  transition: color 0.2s;
+.rss-feed-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
 }
 
 .rss-feed-item-title-compact {
   margin: 0;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.4;
   color: var(--color-fg);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  flex: 1;
+}
+
+.rss-feed-item-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-fg-secondary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -156,11 +165,24 @@
   -webkit-box-orient: vertical;
 }
 
-.rss-feed-item-compact:hover .rss-feed-item-title-compact {
-  color: var(--color-primary);
+.rss-feed-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-fg-tertiary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.rss-feed-item-compact:hover .rss-feed-item-icon {
+.rss-feed-item-date {
+  font-weight: 500;
+}
+
+.rss-feed-item-author {
+  font-style: italic;
+}
+
+.rss-feed-item-compact:hover .rss-feed-item-title-compact {
   color: var(--color-primary);
 }
 

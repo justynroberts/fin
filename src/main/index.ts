@@ -46,9 +46,14 @@ const createWindow = (): void => {
   });
 
   // Load the index.html of the app
-  // TEMPORARILY USING PRODUCTION BUILD TO BYPASS BROKEN HMR
-  console.log('[Main] 🔄 Loading from production build:', path.join(__dirname, '../renderer/index.html'));
-  mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  if (process.env.NODE_ENV === 'development') {
+    const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
+    console.log('[Main] 🔄 Loading from dev server:', devServerUrl);
+    mainWindow.loadURL(devServerUrl);
+  } else {
+    console.log('[Main] 🔄 Loading from production build:', path.join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  }
 
   // Show window immediately in development, or wait for ready-to-show in production
   if (process.env.NODE_ENV === 'development') {

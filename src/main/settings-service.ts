@@ -36,6 +36,8 @@ export interface EditorPreferences {
   lineHeight: number;
   autoSave: boolean;
   autoSaveInterval: number;
+  autoOpenLastWorkspace: boolean;
+  lastWorkspacePath: string | null;
 }
 
 export interface RSSFeed {
@@ -142,6 +144,8 @@ class SettingsService {
           lineHeight: 1.6,
           autoSave: true,
           autoSaveInterval: 30000,
+          autoOpenLastWorkspace: false,
+          lastWorkspacePath: null,
         },
         rssConfig: {
           feeds: [
@@ -335,6 +339,8 @@ class SettingsService {
       lineHeight: 1.6,
       autoSave: true,
       autoSaveInterval: 30000,
+      autoOpenLastWorkspace: false,
+      lastWorkspacePath: null,
     };
   }
 

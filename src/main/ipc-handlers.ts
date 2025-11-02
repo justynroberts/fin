@@ -20,6 +20,7 @@ let workspaceService: WorkspaceService | null = null;
 export function registerIpcHandlers(): void {
   // Workspace operations
   ipcMain.handle('workspace:open', handleOpenWorkspace);
+  ipcMain.handle('workspace:open-path', handleOpenWorkspacePath);
   ipcMain.handle('workspace:create', handleCreateWorkspace);
   ipcMain.handle('workspace:close', handleCloseWorkspace);
   ipcMain.handle('workspace:get-info', handleGetWorkspaceInfo);
@@ -91,6 +92,31 @@ async function handleOpenWorkspace(): Promise<{ success: boolean; path?: string;
     }
 
     const workspacePath = result.filePaths[0];
+
+    // Initialize workspace service
+    workspaceService = new WorkspaceService(workspacePath);
+    await workspaceService.init();
+
+    // Initialize workspace settings
+    await settingsService.setWorkspacePath(workspacePath);
+
+    return { success: true, path: workspacePath };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+/**
+ * Open workspace from a specific path
+ */
+async function handleOpenWorkspacePath(_event: any, workspacePath: string): Promise<{ success: boolean; path?: string; error?: string }> {
+  try {
+    // Check if the path exists
+    try {
+      await fs.access(workspacePath);
+    } catch (error) {
+      return { success: false, error: `Workspace path does not exist: ${workspacePath}` };
+    }
 
     // Initialize workspace service
     workspaceService = new WorkspaceService(workspacePath);

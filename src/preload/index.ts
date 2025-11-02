@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Workspace operations
   workspace: {
     open: () => ipcRenderer.invoke('workspace:open'),
+    openPath: (path: string) => ipcRenderer.invoke('workspace:open-path', path),
     create: () => ipcRenderer.invoke('workspace:create'),
     close: () => ipcRenderer.invoke('workspace:close'),
     getInfo: () => ipcRenderer.invoke('workspace:get-info'),
@@ -100,6 +101,7 @@ export interface ElectronAPI {
 
   workspace: {
     open: () => Promise<{ success: boolean; path?: string; error?: string }>;
+    openPath: (path: string) => Promise<{ success: boolean; path?: string; error?: string }>;
     create: () => Promise<{ success: boolean; path?: string; error?: string }>;
     close: () => Promise<void>;
     getInfo: () => Promise<any>;

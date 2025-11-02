@@ -158,6 +158,11 @@ class CodeExecutionService {
       return `dotnet script "${tempFile}"`;
     }
 
+    // Handle Python - try python3 first, fallback to python
+    if (language === 'python') {
+      return `python3 "${tempFile}" || python "${tempFile}"`;
+    }
+
     // For interpreted languages, just run with executor
     return `${executor} "${tempFile}"`;
   }
@@ -205,7 +210,7 @@ class CodeExecutionService {
     const commands: Record<string, string> = {
       javascript: `npm install ${packageName}`,
       typescript: `npm install ${packageName}`,
-      python: `pip3 install ${packageName} || pip install ${packageName}`,
+      python: `python3 -m pip install ${packageName} || pip3 install ${packageName} || pip install ${packageName}`,
       ruby: `gem install ${packageName}`,
       php: `composer require ${packageName}`,
       go: `go get ${packageName}`,

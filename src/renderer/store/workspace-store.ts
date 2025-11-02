@@ -63,6 +63,7 @@ interface WorkspaceState {
 
   // Actions
   openWorkspace: () => Promise<void>;
+  openWorkspacePath: (path: string) => Promise<void>;
   createWorkspace: () => Promise<void>;
   closeWorkspace: () => Promise<void>;
   loadDocuments: () => Promise<void>;
@@ -107,6 +108,43 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             loading: false,
           });
 
+          // Save as last workspace
+          const prefs = await window.electronAPI.settings.getEditorPreferences();
+          prefs.lastWorkspacePath = result.path;
+          await window.electronAPI.settings.setEditorPreferences(prefs);
+
+          // Load initial data
+          await get().loadDocuments();
+          await get().loadTags();
+          await get().loadGitStatus();
+        } else {
+          set({ loading: false, error: result.error || 'Failed to open workspace' });
+        }
+      } catch (error) {
+        set({ loading: false, error: (error as Error).message });
+      }
+    },
+
+    // Open workspace from a specific path
+    openWorkspacePath: async (workspacePath: string) => {
+      set({ loading: true, error: null });
+
+      try {
+        const result = await window.electronAPI.workspace.openPath(workspacePath);
+
+        if (result.success && result.path) {
+          const info = await window.electronAPI.workspace.getInfo();
+          set({
+            isOpen: true,
+            workspace: { ...info, path: result.path },
+            loading: false,
+          });
+
+          // Save as last workspace
+          const prefs = await window.electronAPI.settings.getEditorPreferences();
+          prefs.lastWorkspacePath = result.path;
+          await window.electronAPI.settings.setEditorPreferences(prefs);
+
           // Load initial data
           await get().loadDocuments();
           await get().loadTags();
@@ -138,6 +176,11 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             workspace: { ...info, path: result.path },
             loading: false,
           });
+
+          // Save as last workspace
+          const prefs = await window.electronAPI.settings.getEditorPreferences();
+          prefs.lastWorkspacePath = result.path;
+          await window.electronAPI.settings.setEditorPreferences(prefs);
 
           console.log('[Workspace] Loading initial data...');
           // Load initial data

@@ -42,6 +42,17 @@ interface RSSConfig {
   refreshInterval: number;
 }
 
+interface EditorPreferences {
+  theme: 'dark' | 'light' | 'auto';
+  fontSize: number;
+  fontFamily: string;
+  lineHeight: number;
+  autoSave: boolean;
+  autoSaveInterval: number;
+  autoOpenLastWorkspace: boolean;
+  lastWorkspacePath: string | null;
+}
+
 const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const { currentTheme, availableThemes, setTheme } = useThemeStore();
 
@@ -67,6 +78,17 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [rssConfig, setRSSConfig] = useState<RSSConfig>({
     feeds: [],
     refreshInterval: 30,
+  });
+
+  const [editorPreferences, setEditorPreferences] = useState<EditorPreferences>({
+    theme: 'dark',
+    fontSize: 14,
+    fontFamily: 'Inter',
+    lineHeight: 1.6,
+    autoSave: true,
+    autoSaveInterval: 30000,
+    autoOpenLastWorkspace: false,
+    lastWorkspacePath: null,
   });
 
   const [activeTab, setActiveTab] = useState<'git' | 'ai' | 'rss' | 'editor' | 'appearance'>('git');
@@ -100,6 +122,10 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       if (rssCfg) {
         setRSSConfig(rssCfg);
       }
+      const editorPrefs = await window.electronAPI.settings.getEditorPreferences();
+      if (editorPrefs) {
+        setEditorPreferences(editorPrefs);
+      }
     } catch (error) {
       console.error('[Settings] Failed to load:', error);
     }
@@ -111,6 +137,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       await window.electronAPI.settings.setGitConfig(gitConfig);
       await window.electronAPI.settings.setAIConfig(aiConfig);
       await window.electronAPI.rss.setConfig(rssConfig);
+      await window.electronAPI.settings.setEditorPreferences(editorPreferences);
       onClose();
     } catch (error) {
       console.error('[Settings] Failed to save:', error);
@@ -511,7 +538,64 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               <div className="settings-section">
                 <h3>Editor Settings</h3>
                 <p className="section-desc">Configure editor behavior and preferences</p>
-                <p className="coming-soon">Coming soon...</p>
+
+                <div className="form-group">
+                  <label>
+                    <div className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editorPreferences.autoSave}
+                        onChange={(e) =>
+                          setEditorPreferences({ ...editorPreferences, autoSave: e.target.checked })
+                        }
+                      />
+                      <span>Enable auto-save</span>
+                    </div>
+                  </label>
+                  <p className="field-desc">Automatically save documents while editing</p>
+                </div>
+
+                {editorPreferences.autoSave && (
+                  <div className="form-group">
+                    <label>Auto-save interval (seconds)</label>
+                    <input
+                      type="number"
+                      min="5"
+                      max="300"
+                      value={editorPreferences.autoSaveInterval / 1000}
+                      onChange={(e) =>
+                        setEditorPreferences({
+                          ...editorPreferences,
+                          autoSaveInterval: Number(e.target.value) * 1000,
+                        })
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>
+                    <div className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editorPreferences.autoOpenLastWorkspace}
+                        onChange={(e) =>
+                          setEditorPreferences({
+                            ...editorPreferences,
+                            autoOpenLastWorkspace: e.target.checked,
+                          })
+                        }
+                      />
+                      <span>Open last workspace on startup</span>
+                    </div>
+                  </label>
+                  <p className="field-desc">Automatically open your most recent workspace when launching Finton</p>
+                  {editorPreferences.lastWorkspacePath && (
+                    <p className="field-desc" style={{ marginTop: '8px', fontStyle: 'italic' }}>
+                      Last workspace: {editorPreferences.lastWorkspacePath}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 

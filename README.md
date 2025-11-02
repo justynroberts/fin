@@ -98,8 +98,14 @@ Get the latest version (v1.0.7) for your platform:
 git clone https://github.com/justynroberts/fin.git
 cd fin
 
-# Install dependencies
+# Easy installation (recommended - handles native modules)
+./install.sh
+
+# Or manual installation:
 npm install
+npm run build:main
+npm run build:preload
+npx electron-rebuild
 
 # Run in development mode
 npm run dev
@@ -109,6 +115,23 @@ npm run build
 
 # Package for macOS
 npm run package:mac
+```
+
+### ⚠️ Important Notes
+
+**Native Module Compilation:**
+Finton uses `better-sqlite3` which requires native compilation for Electron. If you get errors about `NODE_MODULE_VERSION` mismatch:
+
+```bash
+# Rebuild native modules for Electron
+npx electron-rebuild
+```
+
+**macOS Python Requirements:**
+On macOS with Python 3.13+, you may need to install setuptools:
+
+```bash
+python3 -m pip install --break-system-packages setuptools
 ```
 
 ## 🚀 Quick Start Guide
