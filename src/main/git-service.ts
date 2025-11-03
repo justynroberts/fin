@@ -426,21 +426,30 @@ This workspace is a Git repository. You can:
    */
   private createAuthenticatedUrl(url: string, token?: string): string {
     if (!token || token.trim() === '') {
+      console.log('[Git] No PAT token provided, using URL as-is');
       return url;
     }
 
     try {
-      const urlObj = new URL(url);
+      // Remove .git suffix if present for URL parsing
+      let cleanUrl = url.endsWith('.git') ? url.slice(0, -4) : url;
+      const urlObj = new URL(cleanUrl);
+
       // For HTTPS URLs, embed token in URL
       if (urlObj.protocol === 'https:') {
         urlObj.username = 'x-access-token';
         urlObj.password = token;
-        return urlObj.toString();
+        // Add .git suffix back if it was present
+        const authenticatedUrl = urlObj.toString() + (url.endsWith('.git') ? '.git' : '');
+        console.log('[Git] Created authenticated URL (token hidden)');
+        return authenticatedUrl;
       }
       // For SSH URLs, return as-is
+      console.log('[Git] SSH URL detected, using as-is');
       return url;
-    } catch {
+    } catch (error) {
       // Invalid URL, return as-is
+      console.warn('[Git] Failed to parse URL, using as-is:', error);
       return url;
     }
   }
@@ -454,34 +463,48 @@ This workspace is a Git repository. You can:
     }
 
     console.log('[Git] Syncing workspace with remote:', remoteUrl);
+    console.log('[Git] PAT token provided:', !!patToken);
 
     // Create authenticated URL if PAT token is provided
     const authenticatedUrl = this.createAuthenticatedUrl(remoteUrl, patToken);
 
     // Check if remote already exists
     const remotes = await this.getRemotes();
+    console.log('[Git] Current remotes:', remotes);
     const originExists = remotes.some(r => r.name === 'origin');
 
     if (originExists) {
       // Update existing remote URL
+      console.log('[Git] Updating existing remote origin');
       await this.setRemoteUrl('origin', authenticatedUrl);
     } else {
       // Add new remote
+      console.log('[Git] Adding new remote origin');
       await this.addRemote('origin', authenticatedUrl);
     }
 
     // Fetch from remote
-    await this.git.fetch('origin');
+    console.log('[Git] Fetching from origin...');
+    try {
+      await this.git.fetch('origin');
+      console.log('[Git] Fetch successful');
+    } catch (error) {
+      console.error('[Git] Fetch failed:', error);
+      throw new Error('Failed to fetch from remote. Check your PAT token and repository URL.');
+    }
 
     // Try to merge with remote main branch
+    console.log('[Git] Pulling from origin/main...');
     try {
       await this.git.pull('origin', 'main', { '--allow-unrelated-histories': null, '--no-rebase': null });
+      console.log('[Git] Pull successful');
     } catch (error) {
       console.error('[Git] Failed to pull from remote:', error);
       throw new Error('Failed to sync with remote. There may be conflicts that need manual resolution.');
     }
 
     // Set up tracking
+    console.log('[Git] Setting up tracking branch...');
     await this.git.branch(['--set-upstream-to=origin/main', 'main']);
 
     console.log('[Git] Successfully synced with remote');
