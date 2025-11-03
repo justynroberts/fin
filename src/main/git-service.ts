@@ -499,8 +499,29 @@ This workspace is a Git repository. You can:
       await this.git.pull('origin', 'main', { '--allow-unrelated-histories': null, '--no-rebase': null });
       console.log('[Git] Pull successful');
     } catch (error) {
+      const errorMessage = (error as Error).message;
       console.error('[Git] Failed to pull from remote:', error);
-      throw new Error('Failed to sync with remote. There may be conflicts that need manual resolution.');
+
+      // Check if error is due to untracked files that would be overwritten
+      if (errorMessage.includes('untracked working tree files would be overwritten') ||
+          errorMessage.includes('The following untracked working tree files')) {
+        console.log('[Git] Detected untracked file conflicts, removing local files and retrying...');
+
+        // Force checkout to overwrite local files with remote versions
+        try {
+          await this.git.raw(['checkout', '-f', 'origin/main']);
+          console.log('[Git] Force checkout successful, local files replaced with remote versions');
+
+          // Now set the branch to track origin/main
+          await this.git.raw(['reset', '--hard', 'origin/main']);
+          console.log('[Git] Branch reset to origin/main');
+        } catch (forceError) {
+          console.error('[Git] Force checkout failed:', forceError);
+          throw new Error('Failed to sync with remote. Could not overwrite local files with remote versions.');
+        }
+      } else {
+        throw new Error('Failed to sync with remote. There may be conflicts that need manual resolution.');
+      }
     }
 
     // Set up tracking

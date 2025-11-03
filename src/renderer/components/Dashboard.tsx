@@ -3,7 +3,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useWorkspaceStore } from '../store';
+import { useWorkspaceStore, useDocumentStore } from '../store';
 import { RSSFeed } from './RSSFeed';
 import './Dashboard.css';
 
@@ -16,6 +16,7 @@ interface Task {
 
 const Dashboard: React.FC = () => {
   const { documents, workspace } = useWorkspaceStore();
+  const { openDocument } = useDocumentStore();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
@@ -24,6 +25,10 @@ const Dashboard: React.FC = () => {
   const [showCompleted, setShowCompleted] = useState(false);
 
   const recentDocs = documents.slice(0, 5);
+
+  const handleOpenDocument = async (path: string) => {
+    await openDocument(path);
+  };
 
   // Filter tasks based on completion status
   const filteredTasks = showCompleted
@@ -168,7 +173,12 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 recentDocs.map((doc) => (
-                  <div key={doc.path} className="recent-doc-item-compact">
+                  <div
+                    key={doc.path}
+                    className="recent-doc-item-compact"
+                    onClick={() => handleOpenDocument(doc.path)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <span className={`doc-icon-compact ${doc.mode}`}>
                       {doc.mode === 'markdown' && <span className="material-symbols-rounded">article</span>}
                       {doc.mode === 'notes' && <span className="material-symbols-rounded">format_text_wrap</span>}
