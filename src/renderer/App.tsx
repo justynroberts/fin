@@ -12,7 +12,7 @@ import './styles/App.css';
 // Template fix: NewDocumentDialog calls store directly to avoid React stale closure
 
 const App: React.FC = () => {
-  const { isOpen, openWorkspace, openWorkspacePath, createWorkspace, closeWorkspace } = useWorkspaceStore();
+  const { isOpen, openWorkspace, openWorkspacePath, createWorkspace, closeWorkspace, pullFromRemote, loadGitStatus } = useWorkspaceStore();
   const { path: documentPath, title, isDirty, cursorPosition, newDocument, saveDocument, undo, redo, canUndo, canRedo, isActive } = useDocumentStore();
   const { applyTheme } = useThemeStore();
   const [showSettings, setShowSettings] = React.useState(false);
