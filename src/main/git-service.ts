@@ -422,14 +422,41 @@ This workspace is a Git repository. You can:
   }
 
   /**
+   * Create authenticated URL with PAT token
+   */
+  private createAuthenticatedUrl(url: string, token?: string): string {
+    if (!token || token.trim() === '') {
+      return url;
+    }
+
+    try {
+      const urlObj = new URL(url);
+      // For HTTPS URLs, embed token in URL
+      if (urlObj.protocol === 'https:') {
+        urlObj.username = 'x-access-token';
+        urlObj.password = token;
+        return urlObj.toString();
+      }
+      // For SSH URLs, return as-is
+      return url;
+    } catch {
+      // Invalid URL, return as-is
+      return url;
+    }
+  }
+
+  /**
    * Sync workspace with remote repository (for connecting existing workspace to GitHub)
    */
-  async syncWithRemote(remoteUrl: string): Promise<void> {
+  async syncWithRemote(remoteUrl: string, patToken?: string): Promise<void> {
     if (!this.git) {
       throw new Error('Git not initialized');
     }
 
     console.log('[Git] Syncing workspace with remote:', remoteUrl);
+
+    // Create authenticated URL if PAT token is provided
+    const authenticatedUrl = this.createAuthenticatedUrl(remoteUrl, patToken);
 
     // Check if remote already exists
     const remotes = await this.getRemotes();
@@ -437,10 +464,10 @@ This workspace is a Git repository. You can:
 
     if (originExists) {
       // Update existing remote URL
-      await this.setRemoteUrl('origin', remoteUrl);
+      await this.setRemoteUrl('origin', authenticatedUrl);
     } else {
       // Add new remote
-      await this.addRemote('origin', remoteUrl);
+      await this.addRemote('origin', authenticatedUrl);
     }
 
     // Fetch from remote

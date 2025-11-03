@@ -469,8 +469,12 @@ async function handleSyncWithRemote(_event: any, remoteUrl: string): Promise<voi
     throw new Error('No workspace open');
   }
 
+  // Get PAT token from settings for authentication
+  const gitConfig = await settingsService.getGitConfig();
+  const patToken = gitConfig.patToken || undefined;
+
   const gitService = workspaceService.getGitService();
-  await gitService.syncWithRemote(remoteUrl);
+  await gitService.syncWithRemote(remoteUrl, patToken);
 
   // Documents will be reloaded by the renderer after sync
 }

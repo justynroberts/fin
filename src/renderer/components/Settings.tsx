@@ -335,6 +335,31 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     placeholder="your.email@example.com"
                   />
                 </div>
+
+                <div className="form-group">
+                  <label>Personal Access Token (PAT)</label>
+                  <input
+                    type="password"
+                    className="form-input"
+                    value={gitConfig.patToken}
+                    onChange={(e) => setGitConfig({ ...gitConfig, patToken: e.target.value })}
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                  />
+                  <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
+                    Required for GitHub authentication. Get yours at{' '}
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.electronAPI.rss.openLink('https://github.com/settings/tokens');
+                      }}
+                      style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}
+                    >
+                      github.com/settings/tokens
+                    </a>
+                    {' '}(needs "repo" scope)
+                  </p>
+                </div>
               </div>
             )}
 
