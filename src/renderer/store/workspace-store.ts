@@ -113,6 +113,14 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           prefs.lastWorkspacePath = result.path;
           await window.electronAPI.settings.setEditorPreferences(prefs);
 
+          // Auto-pull latest changes from remote
+          try {
+            await get().pullFromRemote();
+          } catch (error) {
+            console.warn('[Workspace] Auto-pull failed on open:', error);
+            // Continue even if pull fails
+          }
+
           // Load initial data
           await get().loadDocuments();
           await get().loadTags();
@@ -144,6 +152,14 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           const prefs = await window.electronAPI.settings.getEditorPreferences();
           prefs.lastWorkspacePath = result.path;
           await window.electronAPI.settings.setEditorPreferences(prefs);
+
+          // Auto-pull latest changes from remote
+          try {
+            await get().pullFromRemote();
+          } catch (error) {
+            console.warn('[Workspace] Auto-pull failed on open:', error);
+            // Continue even if pull fails
+          }
 
           // Load initial data
           await get().loadDocuments();
@@ -286,6 +302,17 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 
       try {
         await window.electronAPI.git.commit(message);
+        await get().loadGitStatus();
+
+        // Auto-push after commit
+        try {
+          await window.electronAPI.git.push('origin', 'main');
+          console.log('[Workspace] Auto-pushed changes after commit');
+        } catch (pushError) {
+          console.warn('[Workspace] Auto-push failed after commit:', pushError);
+          // Don't fail the commit if push fails - user can manually push later
+        }
+
         await get().loadGitStatus();
         set({ syncing: false });
       } catch (error) {

@@ -90,6 +90,23 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [hasCheckedAutoOpen, isOpen, openWorkspacePath]);
 
+  // Periodic background sync (every 5 minutes)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const syncInterval = setInterval(async () => {
+      try {
+        console.log('[App] Running periodic sync...');
+        await pullFromRemote();
+        await loadGitStatus();
+      } catch (error) {
+        console.warn('[App] Periodic sync failed:', error);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(syncInterval);
+  }, [isOpen, pullFromRemote, loadGitStatus]);
+
   if (!isOpen) {
     return (
       <div className="app">
