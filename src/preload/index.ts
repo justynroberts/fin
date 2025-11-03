@@ -45,6 +45,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getRemotes: () => ipcRenderer.invoke('git:get-remotes'),
     log: (file?: string, maxCount?: number) =>
       ipcRenderer.invoke('git:log', file, maxCount),
+    syncWithRemote: (remoteUrl: string) =>
+      ipcRenderer.invoke('git:sync-with-remote', remoteUrl),
   },
 
   // Settings operations
@@ -129,6 +131,7 @@ export interface ElectronAPI {
     addRemote: (name: string, url: string) => Promise<void>;
     getRemotes: () => Promise<Array<{ name: string; url: string }>>;
     log: (file?: string, maxCount?: number) => Promise<any[]>;
+    syncWithRemote: (remoteUrl: string) => Promise<void>;
   };
 
   settings: {

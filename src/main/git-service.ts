@@ -420,4 +420,43 @@ This workspace is a Git repository. You can:
 
     await this.git.remote(['set-url', remoteName, url]);
   }
+
+  /**
+   * Sync workspace with remote repository (for connecting existing workspace to GitHub)
+   */
+  async syncWithRemote(remoteUrl: string): Promise<void> {
+    if (!this.git) {
+      throw new Error('Git not initialized');
+    }
+
+    console.log('[Git] Syncing workspace with remote:', remoteUrl);
+
+    // Check if remote already exists
+    const remotes = await this.getRemotes();
+    const originExists = remotes.some(r => r.name === 'origin');
+
+    if (originExists) {
+      // Update existing remote URL
+      await this.setRemoteUrl('origin', remoteUrl);
+    } else {
+      // Add new remote
+      await this.addRemote('origin', remoteUrl);
+    }
+
+    // Fetch from remote
+    await this.git.fetch('origin');
+
+    // Try to merge with remote main branch
+    try {
+      await this.git.pull('origin', 'main', { '--allow-unrelated-histories': null, '--no-rebase': null });
+    } catch (error) {
+      console.error('[Git] Failed to pull from remote:', error);
+      throw new Error('Failed to sync with remote. There may be conflicts that need manual resolution.');
+    }
+
+    // Set up tracking
+    await this.git.branch(['--set-upstream-to=origin/main', 'main']);
+
+    console.log('[Git] Successfully synced with remote');
+  }
 }

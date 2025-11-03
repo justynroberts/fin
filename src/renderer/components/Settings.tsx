@@ -93,6 +93,9 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
   const [activeTab, setActiveTab] = useState<'git' | 'ai' | 'rss' | 'editor' | 'appearance'>('git');
   const [isSaving, setIsSaving] = useState(false);
+  const [syncUrl, setSyncUrl] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -144,6 +147,31 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       alert('Failed to save settings: ' + (error as Error).message);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSyncWithGitHub = async () => {
+    if (!syncUrl.trim()) {
+      setSyncMessage({ type: 'error', text: 'Please enter a GitHub repository URL' });
+      return;
+    }
+
+    setIsSyncing(true);
+    setSyncMessage(null);
+
+    try {
+      await window.electronAPI.git.syncWithRemote(syncUrl);
+      setSyncMessage({ type: 'success', text: 'Successfully synced with GitHub! Your workspace is now connected.' });
+      setSyncUrl('');
+      // Reload workspace data after sync
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error('[Settings] Sync failed:', error);
+      setSyncMessage({ type: 'error', text: 'Sync failed: ' + (error as Error).message });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -232,18 +260,69 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           <div className="settings-panel" ref={panelRef}>
             {activeTab === 'git' && (
               <div className="settings-section">
-                <h3>Git Configuration</h3>
-                <p className="section-desc">Configure git repository and authentication for syncing</p>
+                <h3>GitHub Sync</h3>
+                <p className="section-desc">Connect your workspace to a GitHub repository for automatic sync across devices</p>
 
                 <div className="form-group">
-                  <label>User Name</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={gitConfig.userName}
-                    onChange={(e) => setGitConfig({ ...gitConfig, userName: e.target.value })}
-                    placeholder="Your name"
-                  />
+                  <label>GitHub Repository URL</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={syncUrl}
+                      onChange={(e) => setSyncUrl(e.target.value)}
+                      placeholder="https://github.com/username/repo"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      className="settings-btn primary"
+                      onClick={handleSyncWithGitHub}
+                      disabled={isSyncing || !syncUrl.trim()}
+                      style={{ minWidth: '120px' }}
+                    >
+                      {isSyncing ? 'Syncing...' : 'Sync Now'}
+                    </button>
+                  </div>
+                  <span className="form-hint">
+                    <span className="material-symbols-rounded">info</span>
+                    Enter your GitHub repository URL and click "Sync Now" to connect this workspace
+                  </span>
+                  {syncMessage && (
+                    <div
+                      style={{
+                        marginTop: '12px',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        backgroundColor: syncMessage.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        color: syncMessage.type === 'success' ? '#22c55e' : '#ef4444',
+                        border: `1px solid ${syncMessage.type === 'success' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span className="material-symbols-rounded">
+                        {syncMessage.type === 'success' ? 'check_circle' : 'error'}
+                      </span>
+                      {syncMessage.text}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid var(--color-border)' }}>
+                  <h3>Git Configuration</h3>
+                  <p className="section-desc">Configure git identity and authentication</p>
+
+                  <div className="form-group">
+                    <label>User Name</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={gitConfig.userName}
+                      onChange={(e) => setGitConfig({ ...gitConfig, userName: e.target.value })}
+                      placeholder="Your name"
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">

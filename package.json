@@ -1,7 +1,7 @@
 {
   "name": "finton",
   "productName": "Finton",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "A powerful text editor that seamlessly switches between Notes, Markdown, and Code modes",
   "main": "dist/main/index.js",
   "author": {

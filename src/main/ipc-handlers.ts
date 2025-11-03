@@ -42,6 +42,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('git:commit', handleGitCommit);
   ipcMain.handle('git:push', handleGitPush);
   ipcMain.handle('git:pull', handleGitPull);
+  ipcMain.handle('git:sync-with-remote', handleSyncWithRemote);
   ipcMain.handle('git:add-remote', handleAddRemote);
   ipcMain.handle('git:get-remotes', handleGetRemotes);
   ipcMain.handle('git:log', handleGetLog);
@@ -458,6 +459,20 @@ async function handleGitPull(_event: any, remote = 'origin', branch = 'main'): P
 
   const gitService = workspaceService.getGitService();
   await gitService.pull(remote, branch);
+}
+
+/**
+ * Sync workspace with remote repository
+ */
+async function handleSyncWithRemote(_event: any, remoteUrl: string): Promise<void> {
+  if (!workspaceService) {
+    throw new Error('No workspace open');
+  }
+
+  const gitService = workspaceService.getGitService();
+  await gitService.syncWithRemote(remoteUrl);
+
+  // Documents will be reloaded by the renderer after sync
 }
 
 /**
