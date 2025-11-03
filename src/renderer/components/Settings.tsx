@@ -335,64 +335,6 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     placeholder="your.email@example.com"
                   />
                 </div>
-
-                <div className="form-group">
-                  <label>Remote Repository URL</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={gitConfig.remoteUrl}
-                    onChange={(e) => setGitConfig({ ...gitConfig, remoteUrl: e.target.value })}
-                    placeholder="https://github.com/username/repo.git"
-                  />
-                  <span className="form-hint">
-                    <span className="material-symbols-rounded">info</span>
-                    Optional: Set a remote repository for syncing your workspace
-                  </span>
-                </div>
-
-                <div className="form-group">
-                  <label>Personal Access Token (PAT)</label>
-                  <input
-                    type="password"
-                    className="form-input"
-                    value={gitConfig.patToken}
-                    onChange={(e) => setGitConfig({ ...gitConfig, patToken: e.target.value })}
-                    placeholder="ghp_xxxxxxxxxxxx"
-                  />
-                  <span className="form-hint">
-                    <span className="material-symbols-rounded">info</span>
-                    Required for pushing to private repositories. Generate at github.com/settings/tokens
-                  </span>
-                </div>
-
-                <div className="form-group">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={gitConfig.autoCommit}
-                      onChange={(e) => setGitConfig({ ...gitConfig, autoCommit: e.target.checked })}
-                    />
-                    <span>Auto-commit on save</span>
-                  </label>
-                  <span className="form-hint">
-                    Automatically create a git commit when saving documents
-                  </span>
-                </div>
-
-                <div className="form-group">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={gitConfig.autoPush}
-                      onChange={(e) => setGitConfig({ ...gitConfig, autoPush: e.target.checked })}
-                    />
-                    <span>Auto-push to remote</span>
-                  </label>
-                  <span className="form-hint">
-                    Automatically push commits to remote repository (requires remote URL and PAT)
-                  </span>
-                </div>
               </div>
             )}
 
