@@ -115,14 +115,53 @@ export class GitService {
   }
 
   /**
-   * Pull from remote
+   * Pull from remote with automatic conflict resolution
    */
   async pull(remote = 'origin', branch = 'main'): Promise<void> {
     if (!this.git) {
       throw new Error('Git not initialized');
     }
 
-    await this.git.pull(remote, branch);
+    try {
+      // Try a normal pull first
+      await this.git.pull(remote, branch);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+
+      // If we have unstaged changes, stash them first
+      if (errorMessage.includes('unstaged changes') || errorMessage.includes('local changes')) {
+        console.log('[Git] Stashing local changes before pull');
+        await this.git.stash();
+
+        try {
+          await this.git.pull(remote, branch);
+          // Try to reapply stashed changes
+          try {
+            await this.git.stash(['pop']);
+          } catch (stashError) {
+            console.warn('[Git] Could not reapply stashed changes:', stashError);
+            // Keep the stash, don't fail the pull
+          }
+        } catch (pullError) {
+          // Restore stashed changes even if pull fails
+          try {
+            await this.git.stash(['pop']);
+          } catch {
+            // Ignore stash pop errors
+          }
+          throw pullError;
+        }
+      }
+      // If branches have diverged, merge automatically
+      else if (errorMessage.includes('divergent') || errorMessage.includes('have diverged')) {
+        console.log('[Git] Branches diverged, performing automatic merge');
+        await this.git.pull(remote, branch, { '--no-rebase': null });
+      }
+      else {
+        // Re-throw other errors
+        throw error;
+      }
+    }
   }
 
   /**
