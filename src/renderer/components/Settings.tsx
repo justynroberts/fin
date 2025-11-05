@@ -167,21 +167,34 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       // Reload workspace data after sync (workspace was re-initialized in main process)
       setTimeout(async () => {
         try {
+          console.log('[Settings] Reloading workspace data after sync...');
+
           // Get fresh workspace info and documents
+          console.log('[Settings] Fetching workspace info...');
           const info = await window.electronAPI.workspace.getInfo();
-          const docs = await window.electronAPI.workspace.getDocuments();
-          const tags = await window.electronAPI.workspace.getTags();
+          console.log('[Settings] Workspace info:', info);
+
+          console.log('[Settings] Fetching documents...');
+          const docs = await window.electronAPI.document.list();
+          console.log('[Settings] Documents count:', docs.length);
+
+          console.log('[Settings] Fetching tags...');
+          const tags = await window.electronAPI.search.tags();
+          console.log('[Settings] Tags count:', tags.length);
 
           // Update workspace store
+          console.log('[Settings] Updating workspace store...');
           useWorkspaceStore.setState({
             workspace: info,
             documents: docs,
             tags: tags,
           });
+          console.log('[Settings] Workspace store updated successfully');
 
-          setSyncMessage({ type: 'success', text: 'Sync complete! Documents loaded.' });
+          setSyncMessage({ type: 'success', text: `Sync complete! Loaded ${docs.length} documents.` });
         } catch (error) {
           console.error('[Settings] Failed to reload workspace data:', error);
+          console.error('[Settings] Error details:', error instanceof Error ? error.message : String(error));
           setSyncMessage({ type: 'error', text: 'Synced but failed to reload documents. Try closing and reopening the workspace.' });
         }
       }, 500);
