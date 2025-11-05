@@ -6,6 +6,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import Database from 'better-sqlite3';
 import { GitService } from './git-service';
+import { parseFrontmatter } from './frontmatter-utils';
 
 export interface WorkspaceMetadata {
   version: string;
@@ -392,11 +393,85 @@ export class WorkspaceService {
 
     const metadata = await this.loadMetadata();
 
+    console.log('[Workspace] rebuildIndex: Starting with', Object.keys(metadata.documents).length, 'documents in metadata');
+
+    // Index documents from metadata
     for (const [relativePath, doc] of Object.entries(metadata.documents)) {
       await this.indexDocument(relativePath, doc);
     }
 
+    // CRITICAL: Also scan filesystem for documents not yet in metadata
+    // This handles the case where documents were pulled from GitHub but metadata doesn't exist yet
+    const documentsDir = path.join(this.workspacePath, 'documents');
+    console.log('[Workspace] rebuildIndex: Scanning', documentsDir, 'for new documents');
+
+    try {
+      const files = await fs.readdir(documentsDir, { recursive: true });
+      console.log('[Workspace] rebuildIndex: Found', files.length, 'files in documents directory');
+
+      let newDocsAdded = 0;
+      for (const file of files) {
+        if (typeof file !== 'string') continue;
+
+        const relativePath = `documents/${file}`;
+        const fullPath = path.join(documentsDir, file);
+
+        // Skip if already in metadata
+        if (metadata.documents[relativePath]) continue;
+
+        // Skip if it's a directory
+        const stats = await fs.stat(fullPath);
+        if (stats.isDirectory()) continue;
+
+        // Try to read frontmatter from this file
+        try {
+          const content = await fs.readFile(fullPath, 'utf-8');
+          const { metadata: fileMeta } = parseFrontmatter(content);
+
+          // Determine mode from file extension if not in frontmatter
+          let mode: 'notes' | 'markdown' | 'code' = 'markdown';
+          const ext = path.extname(file).toLowerCase();
+          if (ext === '.js' || ext === '.ts' || ext === '.py' || ext === '.java' || ext === '.cpp' || ext === '.c' || ext === '.go' || ext === '.rs') {
+            mode = 'code';
+          } else if (ext === '.html') {
+            mode = 'notes';
+          }
+
+          // Create metadata for ANY discovered file (not just files with frontmatter)
+          const docMeta = {
+            id: relativePath.replace(/[^a-zA-Z0-9]/g, '_'),
+            title: fileMeta.title || path.basename(file, path.extname(file)),
+            mode: fileMeta.mode || mode,
+            tags: fileMeta.tags || [],
+            language: fileMeta.language,
+            created: stats.birthtime.toISOString(),
+            modified: stats.mtime.toISOString(),
+          };
+
+          // Add to metadata
+          metadata.documents[relativePath] = docMeta;
+
+          // Index in SQLite
+          await this.indexDocument(relativePath, docMeta);
+
+          newDocsAdded++;
+          console.log('[Workspace] rebuildIndex: Added new document from filesystem:', relativePath, 'mode:', docMeta.mode);
+        } catch (error) {
+          console.error(`[Workspace] rebuildIndex: Failed to process ${relativePath}:`, error);
+        }
+      }
+
+      // If we added new documents, save the updated metadata
+      if (newDocsAdded > 0) {
+        console.log('[Workspace] rebuildIndex: Saving metadata with', newDocsAdded, 'new documents');
+        await this.saveMetadata(metadata);
+      }
+    } catch (error) {
+      console.error('[Workspace] rebuildIndex: Failed to scan documents directory:', error);
+    }
+
     await this.rebuildTagCounts();
+    console.log('[Workspace] rebuildIndex: Complete. Total documents in index:', Object.keys(metadata.documents).length);
   }
 
   /**
