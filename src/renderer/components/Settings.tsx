@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import './Settings.css';
-import { useThemeStore } from '../store';
+import { useThemeStore, useWorkspaceStore } from '../store';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -161,12 +161,30 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
     try {
       await window.electronAPI.git.syncWithRemote(syncUrl);
-      setSyncMessage({ type: 'success', text: 'Successfully synced with GitHub! Your workspace is now connected.' });
+      setSyncMessage({ type: 'success', text: 'Successfully synced with GitHub! Reloading documents...' });
       setSyncUrl('');
-      // Reload workspace data after sync
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+
+      // Reload workspace data after sync (workspace was re-initialized in main process)
+      setTimeout(async () => {
+        try {
+          // Get fresh workspace info and documents
+          const info = await window.electronAPI.workspace.getInfo();
+          const docs = await window.electronAPI.workspace.getDocuments();
+          const tags = await window.electronAPI.workspace.getTags();
+
+          // Update workspace store
+          useWorkspaceStore.setState({
+            workspace: info,
+            documents: docs,
+            tags: tags,
+          });
+
+          setSyncMessage({ type: 'success', text: 'Sync complete! Documents loaded.' });
+        } catch (error) {
+          console.error('[Settings] Failed to reload workspace data:', error);
+          setSyncMessage({ type: 'error', text: 'Synced but failed to reload documents. Try closing and reopening the workspace.' });
+        }
+      }, 500);
     } catch (error) {
       console.error('[Settings] Sync failed:', error);
       setSyncMessage({ type: 'error', text: 'Sync failed: ' + (error as Error).message });
