@@ -157,7 +157,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     }
 
     // Check if PAT token is configured
-    if (!gitConfig.remoteUrl || !gitConfig.patToken) {
+    if (!gitConfig.patToken) {
       setSyncMessage({ type: 'error', text: 'Please save your PAT token first before syncing' });
       return;
     }
