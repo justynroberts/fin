@@ -68,7 +68,7 @@ const App: React.FC = () => {
 
       try {
         // Check if electronAPI is available
-        if (!window.electronAPI?.workspace?.openFixedWorkspace) {
+        if (!window.electronAPI?.workspace?.openPath) {
           console.warn('[App] electronAPI not available yet');
           return;
         }
@@ -82,7 +82,7 @@ const App: React.FC = () => {
     };
 
     // Use a small delay to ensure electronAPI is ready
-    const timer = setTimeout(autoOpenWorkspace, 100);
+    const timer = setTimeout(autoOpenWorkspace, 500);
     return () => clearTimeout(timer);
   }, [hasCheckedAutoOpen, isOpen, openWorkspacePath]);
 
