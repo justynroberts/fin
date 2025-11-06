@@ -464,6 +464,7 @@ This workspace is a Git repository. You can:
 
     console.log('[Git] Syncing workspace with remote:', remoteUrl);
     console.log('[Git] PAT token provided:', !!patToken);
+    console.log('[Git] Workspace path:', this.workspacePath);
 
     // Create authenticated URL if PAT token is provided
     const authenticatedUrl = this.createAuthenticatedUrl(remoteUrl, patToken);
@@ -493,41 +494,59 @@ This workspace is a Git repository. You can:
       throw new Error('Failed to fetch from remote. Check your PAT token and repository URL.');
     }
 
-    // Try to merge with remote main branch
-    console.log('[Git] Pulling from origin/main...');
+    // Check if remote has commits
+    let remoteHasCommits = false;
     try {
-      await this.git.pull('origin', 'main', { '--allow-unrelated-histories': null, '--no-rebase': null });
-      console.log('[Git] Pull successful');
+      await this.git.raw(['rev-parse', 'origin/main']);
+      remoteHasCommits = true;
+      console.log('[Git] Remote has commits');
+    } catch {
+      console.log('[Git] Remote does not have main branch');
+    }
+
+    if (!remoteHasCommits) {
+      console.log('[Git] Remote is empty, just setting up tracking');
+      await this.git.branch(['--set-upstream-to=origin/main', 'main']);
+      console.log('[Git] Successfully configured remote');
+      return;
+    }
+
+    // Strategy: Delete everything locally and pull fresh from GitHub
+    console.log('[Git] Resetting local workspace to match remote...');
+
+    try {
+      // First, delete the local main branch if it exists
+      try {
+        await this.git.raw(['branch', '-D', 'main']);
+        console.log('[Git] Deleted local main branch');
+      } catch (error) {
+        console.log('[Git] Could not delete main branch (might not exist)');
+      }
+
+      // Checkout remote main branch as new local main
+      await this.git.raw(['checkout', '-b', 'main', 'origin/main']);
+      console.log('[Git] Created main branch from origin/main');
+
+      // Set up tracking
+      await this.git.branch(['--set-upstream-to=origin/main', 'main']);
+      console.log('[Git] Tracking branch configured');
+
     } catch (error) {
       const errorMessage = (error as Error).message;
-      console.error('[Git] Failed to pull from remote:', error);
+      console.error('[Git] Reset strategy failed:', error);
 
-      // Check if error is due to untracked files that would be overwritten
-      if (errorMessage.includes('untracked working tree files would be overwritten') ||
-          errorMessage.includes('The following untracked working tree files')) {
-        console.log('[Git] Detected untracked file conflicts, removing local files and retrying...');
-
-        // Force checkout to overwrite local files with remote versions
-        try {
-          await this.git.raw(['checkout', '-f', 'origin/main']);
-          console.log('[Git] Force checkout successful, local files replaced with remote versions');
-
-          // Now set the branch to track origin/main
-          await this.git.raw(['reset', '--hard', 'origin/main']);
-          console.log('[Git] Branch reset to origin/main');
-        } catch (forceError) {
-          console.error('[Git] Force checkout failed:', forceError);
-          throw new Error('Failed to sync with remote. Could not overwrite local files with remote versions.');
-        }
-      } else {
-        throw new Error('Failed to sync with remote. There may be conflicts that need manual resolution.');
+      // Fallback: Try force reset
+      try {
+        console.log('[Git] Trying fallback: force reset...');
+        await this.git.raw(['reset', '--hard', 'origin/main']);
+        await this.git.branch(['--set-upstream-to=origin/main', 'main']);
+        console.log('[Git] Force reset successful');
+      } catch (fallbackError) {
+        console.error('[Git] Fallback also failed:', fallbackError);
+        throw new Error('Failed to sync with remote. Could not reset local workspace to match GitHub.');
       }
     }
 
-    // Set up tracking
-    console.log('[Git] Setting up tracking branch...');
-    await this.git.branch(['--set-upstream-to=origin/main', 'main']);
-
-    console.log('[Git] Successfully synced with remote');
+    console.log('[Git] Successfully synced with remote - workspace now matches GitHub');
   }
 }

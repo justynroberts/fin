@@ -208,8 +208,18 @@ async function handleListDocuments(): Promise<any[]> {
   const documentsDir = path.join(workspacePath, 'documents');
   console.log('[IPC] Scanning documents directory:', documentsDir);
   try {
+    // Check if documents directory exists
+    try {
+      await fs.access(documentsDir);
+      console.log('[IPC] ✅ Documents directory exists');
+    } catch (err) {
+      console.log('[IPC] ❌ Documents directory does NOT exist:', err);
+      throw err;
+    }
+
     const files = await fs.readdir(documentsDir, { recursive: true });
     console.log('[IPC] Found files in documents directory:', files.length);
+    console.log('[IPC] Files:', files);
 
     for (const file of files) {
       if (typeof file !== 'string') continue;
@@ -261,7 +271,15 @@ async function handleListDocuments(): Promise<any[]> {
     path,
     ...doc,
   }));
-  console.log('[IPC] Returning documents count:', result.length);
+
+  console.log('[IPC] ========== FINAL RESULT ==========');
+  console.log('[IPC] Workspace path:', workspacePath);
+  console.log('[IPC] Documents directory:', documentsDir);
+  console.log('[IPC] Total documents in metadata:', Object.keys(metadata.documents).length);
+  console.log('[IPC] Total documents in result:', result.length);
+  console.log('[IPC] Document list:', result.map(d => d.path).join(', '));
+  console.log('[IPC] =====================================');
+
   return result;
 }
 
