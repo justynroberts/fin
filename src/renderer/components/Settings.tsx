@@ -91,7 +91,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     lastWorkspacePath: null,
   });
 
-  const [activeTab, setActiveTab] = useState<'git' | 'ai' | 'rss' | 'editor' | 'appearance'>('git');
+  const [activeTab, setActiveTab] = useState<'git' | 'ai' | 'rss' | 'editor' | 'appearance' | 'logs'>('git');
   const [isSaving, setIsSaving] = useState(false);
   const [syncUrl, setSyncUrl] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -156,11 +156,23 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       return;
     }
 
+    // Check if PAT token is configured
+    if (!gitConfig.remoteUrl || !gitConfig.patToken) {
+      setSyncMessage({ type: 'error', text: 'Please save your PAT token first before syncing' });
+      return;
+    }
+
     setIsSyncing(true);
-    setSyncMessage(null);
+    setSyncMessage({ type: 'success', text: 'Syncing with GitHub...' });
 
     try {
-      await window.electronAPI.git.syncWithRemote(syncUrl);
+      console.log('[Settings] Starting GitHub sync...');
+      console.log('[Settings] Remote URL:', syncUrl);
+      console.log('[Settings] PAT token configured:', !!gitConfig.patToken);
+
+      await window.electronAPI.git.syncWithRemote(syncUrl, gitConfig.patToken);
+      console.log('[Settings] Sync completed successfully');
+
       setSyncMessage({ type: 'success', text: 'Successfully synced with GitHub! Reloading documents...' });
       setSyncUrl('');
 
@@ -182,6 +194,8 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             console.table(docs.slice(0, 10)); // Show first 10 documents in table format
           } else {
             console.warn('[Settings] No documents returned from backend!');
+            console.warn('[Settings] Check that ~/Documents/Finton/documents/ directory exists');
+            console.warn('[Settings] Backend logs will show more details about what went wrong');
           }
 
           console.log('[Settings] Fetching tags...');
