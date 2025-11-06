@@ -521,6 +521,13 @@ This workspace is a Git repository. You can:
     console.log('[Git] Replacing local workspace with remote content...');
 
     try {
+      // List what will be removed for debugging
+      console.log('[Git] Checking what files will be cleaned...');
+      const statusBeforeClean = await this.git.status();
+      console.log('[Git] Not tracked:', statusBeforeClean.not_added);
+      console.log('[Git] Modified:', statusBeforeClean.modified);
+      console.log('[Git] Staged:', statusBeforeClean.staged);
+
       // Remove all untracked files first (prevents "would be overwritten" errors)
       console.log('[Git] Removing untracked files...');
       await this.git.raw(['clean', '-fd']);
@@ -547,6 +554,26 @@ This workspace is a Git repository. You can:
       console.log('[Git] Force resetting to match remote...');
       await this.git.raw(['reset', '--hard', 'origin/main']);
       console.log('[Git] Successfully reset to match remote');
+
+      // Verify what files are in the workspace after sync
+      console.log('[Git] Verifying workspace contents after sync...');
+      const fs = require('fs/promises');
+      const path = require('path');
+      try {
+        const workspaceContents = await fs.readdir(this.workspacePath!);
+        console.log('[Git] Workspace root contains:', workspaceContents);
+
+        // Check if documents directory exists
+        const documentsPath = path.join(this.workspacePath!, 'documents');
+        try {
+          const documentsContents = await fs.readdir(documentsPath);
+          console.log('[Git] documents/ directory contains:', documentsContents);
+        } catch (err) {
+          console.log('[Git] documents/ directory does NOT exist or is empty');
+        }
+      } catch (err) {
+        console.error('[Git] Failed to list workspace contents:', err);
+      }
 
     } catch (error) {
       const errorMessage = (error as Error).message;
