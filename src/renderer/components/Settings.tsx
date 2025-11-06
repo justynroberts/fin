@@ -177,10 +177,17 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           console.log('[Settings] Fetching documents...');
           const docs = await window.electronAPI.document.list();
           console.log('[Settings] Documents count:', docs.length);
+          console.log('[Settings] Documents array:', docs);
+          if (docs.length > 0) {
+            console.table(docs.slice(0, 10)); // Show first 10 documents in table format
+          } else {
+            console.warn('[Settings] No documents returned from backend!');
+          }
 
           console.log('[Settings] Fetching tags...');
           const tags = await window.electronAPI.search.tags();
           console.log('[Settings] Tags count:', tags.length);
+          console.log('[Settings] Tags array:', tags);
 
           // Update workspace store
           console.log('[Settings] Updating workspace store...');
@@ -191,13 +198,17 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           });
           console.log('[Settings] Workspace store updated successfully');
 
-          setSyncMessage({ type: 'success', text: `Sync complete! Loaded ${docs.length} documents.` });
+          if (docs.length === 0) {
+            setSyncMessage({ type: 'error', text: 'Sync completed but no documents were found. Check console for details.' });
+          } else {
+            setSyncMessage({ type: 'success', text: `Sync complete! Loaded ${docs.length} documents.` });
+          }
         } catch (error) {
           console.error('[Settings] Failed to reload workspace data:', error);
           console.error('[Settings] Error details:', error instanceof Error ? error.message : String(error));
           setSyncMessage({ type: 'error', text: 'Synced but failed to reload documents. Try closing and reopening the workspace.' });
         }
-      }, 500);
+      }, 2000);
     } catch (error) {
       console.error('[Settings] Sync failed:', error);
       setSyncMessage({ type: 'error', text: 'Sync failed: ' + (error as Error).message });
