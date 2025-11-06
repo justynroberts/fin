@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
+import { version } from '../../package.json';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 // Only needed for Windows Squirrel installer
@@ -74,6 +75,11 @@ const createWindow = (): void => {
       mainWindow?.show();
     });
   }
+
+  // Inject version number into window
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow?.webContents.executeJavaScript(`window.APP_VERSION = '${version}';`);
+  });
 
   // Listen for did-fail-load event
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {

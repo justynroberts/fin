@@ -303,6 +303,20 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Version Footer */}
+      <div style={{
+        position: 'fixed',
+        bottom: '8px',
+        right: '12px',
+        fontSize: '11px',
+        color: 'rgba(255, 255, 255, 0.3)',
+        fontFamily: 'var(--font-mono)',
+        pointerEvents: 'none',
+        userSelect: 'none'
+      }}>
+        v{(window as any).APP_VERSION || '1.0.22'}
+      </div>
     </div>
   );
 };
