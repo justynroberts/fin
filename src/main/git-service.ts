@@ -456,6 +456,7 @@ This workspace is a Git repository. You can:
 
   /**
    * Sync workspace with remote repository (for connecting existing workspace to GitHub)
+   * Handles the case where local workspace has unrelated history from remote
    */
   async syncWithRemote(remoteUrl: string, patToken?: string): Promise<void> {
     if (!this.git) {
@@ -506,44 +507,74 @@ This workspace is a Git repository. You can:
 
     if (!remoteHasCommits) {
       console.log('[Git] Remote is empty, just setting up tracking');
-      await this.git.branch(['--set-upstream-to=origin/main', 'main']);
+      try {
+        await this.git.branch(['--set-upstream-to=origin/main', 'main']);
+      } catch (error) {
+        console.log('[Git] Could not set up tracking (remote branch may not exist yet)');
+      }
       console.log('[Git] Successfully configured remote');
       return;
     }
 
-    // Strategy: Delete everything locally and pull fresh from GitHub
-    console.log('[Git] Resetting local workspace to match remote...');
+    // Strategy: Replace local workspace with remote content
+    // This handles the "created new workspace then sync" case
+    console.log('[Git] Replacing local workspace with remote content...');
 
     try {
-      // First, delete the local main branch if it exists
+      // Remove all untracked files first (prevents "would be overwritten" errors)
+      console.log('[Git] Removing untracked files...');
+      await this.git.raw(['clean', '-fd']);
+      console.log('[Git] Untracked files removed');
+
+      // Switch to a temporary detached HEAD state
+      console.log('[Git] Switching to detached HEAD...');
+      await this.git.raw(['checkout', '--detach']);
+
+      // Delete the local main branch if it exists
       try {
         await this.git.raw(['branch', '-D', 'main']);
         console.log('[Git] Deleted local main branch');
       } catch (error) {
-        console.log('[Git] Could not delete main branch (might not exist)');
+        console.log('[Git] No local main branch to delete');
       }
 
-      // Checkout remote main branch as new local main
-      await this.git.raw(['checkout', '-b', 'main', 'origin/main']);
-      console.log('[Git] Created main branch from origin/main');
+      // Create new main branch from remote
+      console.log('[Git] Creating main branch from origin/main...');
+      await this.git.raw(['checkout', '-b', 'main', '--track', 'origin/main']);
+      console.log('[Git] Created and checked out main branch from origin/main');
 
-      // Set up tracking
-      await this.git.branch(['--set-upstream-to=origin/main', 'main']);
-      console.log('[Git] Tracking branch configured');
+      // Force reset to match remote exactly (this replaces all local content)
+      console.log('[Git] Force resetting to match remote...');
+      await this.git.raw(['reset', '--hard', 'origin/main']);
+      console.log('[Git] Successfully reset to match remote');
 
     } catch (error) {
       const errorMessage = (error as Error).message;
-      console.error('[Git] Reset strategy failed:', error);
+      console.error('[Git] Sync strategy failed:', error);
 
-      // Fallback: Try force reset
+      // Fallback: Try different approach - create orphan branch
       try {
-        console.log('[Git] Trying fallback: force reset...');
-        await this.git.raw(['reset', '--hard', 'origin/main']);
-        await this.git.branch(['--set-upstream-to=origin/main', 'main']);
-        console.log('[Git] Force reset successful');
+        console.log('[Git] Trying fallback: orphan branch approach...');
+
+        // Clean any untracked files
+        try {
+          await this.git.raw(['clean', '-fd']);
+        } catch {}
+
+        // Delete main if it exists
+        try {
+          await this.git.raw(['checkout', '--orphan', 'temp-branch']);
+          await this.git.raw(['branch', '-D', 'main']);
+        } catch {}
+
+        // Create fresh main from remote
+        await this.git.raw(['fetch', 'origin', 'main:main']);
+        await this.git.raw(['checkout', 'main']);
+        console.log('[Git] Fallback successful');
+
       } catch (fallbackError) {
         console.error('[Git] Fallback also failed:', fallbackError);
-        throw new Error('Failed to sync with remote. Could not reset local workspace to match GitHub.');
+        throw new Error('Failed to sync with remote. Please try creating a fresh workspace and syncing again.');
       }
     }
 

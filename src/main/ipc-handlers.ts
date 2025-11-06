@@ -8,16 +8,30 @@ import { settingsService } from './settings-service';
 import { aiService } from './ai-service';
 import { codeExecutionService } from './code-execution-service';
 import { rssService } from './rss-service';
+import { ApiServer } from './api-server';
 import { parseFrontmatter } from './frontmatter-utils';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 let workspaceService: WorkspaceService | null = null;
+let apiServer: ApiServer | null = null;
+
+/**
+ * Get current workspace service (for API server)
+ */
+export function getWorkspaceService(): WorkspaceService | null {
+  return workspaceService;
+}
 
 /**
  * Register all IPC handlers
  */
 export function registerIpcHandlers(): void {
+  // Start API server
+  apiServer = new ApiServer(31337);
+  apiServer.start().catch(error => {
+    console.error('[Main] Failed to start API server:', error);
+  });
   // Workspace operations
   ipcMain.handle('workspace:open', handleOpenWorkspace);
   ipcMain.handle('workspace:open-path', handleOpenWorkspacePath);
@@ -98,6 +112,11 @@ async function handleOpenWorkspace(): Promise<{ success: boolean; path?: string;
     workspaceService = new WorkspaceService(workspacePath);
     await workspaceService.init();
 
+    // Update API server with workspace service
+    if (apiServer) {
+      apiServer.setWorkspaceService(workspaceService);
+    }
+
     // Initialize workspace settings
     await settingsService.setWorkspacePath(workspacePath);
 
@@ -122,6 +141,11 @@ async function handleOpenWorkspacePath(_event: any, workspacePath: string): Prom
     // Initialize workspace service
     workspaceService = new WorkspaceService(workspacePath);
     await workspaceService.init();
+
+    // Update API server with workspace service
+    if (apiServer) {
+      apiServer.setWorkspaceService(workspaceService);
+    }
 
     // Initialize workspace settings
     await settingsService.setWorkspacePath(workspacePath);
@@ -157,6 +181,11 @@ async function handleCreateWorkspace(): Promise<{ success: boolean; path?: strin
     // Initialize workspace service
     workspaceService = new WorkspaceService(workspacePath);
     await workspaceService.init();
+
+    // Update API server with workspace service
+    if (apiServer) {
+      apiServer.setWorkspaceService(workspaceService);
+    }
 
     // Initialize workspace settings
     await settingsService.setWorkspacePath(workspacePath);
