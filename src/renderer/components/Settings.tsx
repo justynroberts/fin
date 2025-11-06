@@ -208,7 +208,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           console.error('[Settings] Error details:', error instanceof Error ? error.message : String(error));
           setSyncMessage({ type: 'error', text: 'Synced but failed to reload documents. Try closing and reopening the workspace.' });
         }
-      }, 2000);
+      }, 500);
     } catch (error) {
       console.error('[Settings] Sync failed:', error);
       setSyncMessage({ type: 'error', text: 'Sync failed: ' + (error as Error).message });
