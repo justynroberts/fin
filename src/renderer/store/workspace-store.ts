@@ -237,7 +237,12 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     loadDocuments: async () => {
       try {
         const docs = await window.electronAPI.document.list();
-        set({ documents: docs });
+        // Filter out hidden files (files starting with .)
+        const visibleDocs = docs.filter(doc => {
+          const fileName = doc.path.split('/').pop() || '';
+          return !fileName.startsWith('.');
+        });
+        set({ documents: visibleDocs });
       } catch (error) {
         console.error('[Workspace] Failed to load documents:', error);
         set({ error: (error as Error).message });

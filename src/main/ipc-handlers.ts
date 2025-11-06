@@ -10,6 +10,7 @@ import { codeExecutionService } from './code-execution-service';
 import { rssService } from './rss-service';
 import { ApiServer } from './api-server';
 import { parseFrontmatter } from './frontmatter-utils';
+import { ensureWorkspace, getWorkspacePath } from './workspace-config';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -127,19 +128,29 @@ async function handleOpenWorkspace(): Promise<{ success: boolean; path?: string;
 }
 
 /**
- * Open workspace from a specific path
+ * Open workspace from a specific path (or use fixed workspace if path === 'fixed')
  */
 async function handleOpenWorkspacePath(_event: any, workspacePath: string): Promise<{ success: boolean; path?: string; error?: string }> {
   try {
-    // Check if the path exists
-    try {
-      await fs.access(workspacePath);
-    } catch (error) {
-      return { success: false, error: `Workspace path does not exist: ${workspacePath}` };
+    let actualPath: string;
+
+    // Use fixed workspace if 'fixed' marker is passed
+    if (workspacePath === 'fixed') {
+      actualPath = await ensureWorkspace();
+      console.log('[IPC] Using fixed workspace:', actualPath);
+    } else {
+      actualPath = workspacePath;
+
+      // Check if the path exists
+      try {
+        await fs.access(actualPath);
+      } catch (error) {
+        return { success: false, error: `Workspace path does not exist: ${actualPath}` };
+      }
     }
 
     // Initialize workspace service
-    workspaceService = new WorkspaceService(workspacePath);
+    workspaceService = new WorkspaceService(actualPath);
     await workspaceService.init();
 
     // Update API server with workspace service
@@ -148,9 +159,9 @@ async function handleOpenWorkspacePath(_event: any, workspacePath: string): Prom
     }
 
     // Initialize workspace settings
-    await settingsService.setWorkspacePath(workspacePath);
+    await settingsService.setWorkspacePath(actualPath);
 
-    return { success: true, path: workspacePath };
+    return { success: true, path: actualPath };
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }

@@ -56,9 +56,9 @@ const App: React.FC = () => {
     applyTheme();
   }, [applyTheme]);
 
-  // Check for auto-open last workspace on mount
+  // Auto-open fixed workspace on mount
   useEffect(() => {
-    const checkAutoOpen = async () => {
+    const autoOpenWorkspace = async () => {
       // Only check once, and only if workspace isn't already open
       if (hasCheckedAutoOpen || isOpen) {
         return;
@@ -68,25 +68,21 @@ const App: React.FC = () => {
 
       try {
         // Check if electronAPI is available
-        if (!window.electronAPI?.settings?.getEditorPreferences) {
+        if (!window.electronAPI?.workspace?.openFixedWorkspace) {
           console.warn('[App] electronAPI not available yet');
           return;
         }
 
-        const prefs = await window.electronAPI.settings.getEditorPreferences();
-        // Auto-open if last workspace path exists (regardless of setting)
-        if (prefs?.lastWorkspacePath) {
-          console.log('[App] Auto-opening last workspace:', prefs.lastWorkspacePath);
-          await openWorkspacePath(prefs.lastWorkspacePath);
-        }
+        console.log('[App] Auto-opening fixed workspace');
+        await openWorkspacePath('fixed'); // Special marker for fixed workspace
       } catch (error) {
         console.error('[App] Failed to auto-open workspace:', error);
-        // Continue to show welcome screen on error
+        // This is a critical error since we always need the fixed workspace
       }
     };
 
     // Use a small delay to ensure electronAPI is ready
-    const timer = setTimeout(checkAutoOpen, 100);
+    const timer = setTimeout(autoOpenWorkspace, 100);
     return () => clearTimeout(timer);
   }, [hasCheckedAutoOpen, isOpen, openWorkspacePath]);
 
@@ -114,79 +110,20 @@ const App: React.FC = () => {
           <div className="titlebar-title">Finton</div>
         </div>
 
-        <div className="main-content">
-          <div className="welcome-screen">
-            <div className="welcome-hero">
-              <div className="welcome-icon-container">
-                <span className="material-symbols-rounded welcome-icon">pets</span>
-                <div className="icon-glow"></div>
-              </div>
-              <h1 className="welcome-title">Finton</h1>
-              <p className="welcome-subtitle">
-                A powerful text editor with AI assistance, seamless mode switching, and intelligent organization
-              </p>
+        <div className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div className="welcome-icon-container">
+              <span className="material-symbols-rounded welcome-icon">pets</span>
+              <div className="icon-glow"></div>
             </div>
-
-            <div className="welcome-actions">
-              <button className="action-button-large primary" onClick={createWorkspace}>
-                <span className="material-symbols-rounded">add_circle</span>
-                <div className="button-content">
-                  <div className="button-title">Create Workspace</div>
-                  <div className="button-subtitle">Start fresh with Git version control</div>
-                </div>
-              </button>
-              <button className="action-button-large secondary" onClick={openWorkspace}>
-                <span className="material-symbols-rounded">folder_open</span>
-                <div className="button-content">
-                  <div className="button-title">Open Workspace</div>
-                  <div className="button-subtitle">Continue with existing workspace</div>
-                </div>
-              </button>
-            </div>
-
-            <div className="features-grid">
-              <div className="feature-card">
-                <div className="feature-icon-wrapper">
-                  <span className="material-symbols-rounded">psychology</span>
-                </div>
-                <div className="feature-content">
-                  <div className="feature-title">AI Assistant</div>
-                  <div className="feature-desc">Generate and modify content with AI</div>
-                </div>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon-wrapper">
-                  <span className="material-symbols-rounded">swap_horiz</span>
-                </div>
-                <div className="feature-content">
-                  <div className="feature-title">Mode Switching</div>
-                  <div className="feature-desc">Notes, Markdown, and Code</div>
-                </div>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon-wrapper">
-                  <span className="material-symbols-rounded">search</span>
-                </div>
-                <div className="feature-content">
-                  <div className="feature-title">Smart Search</div>
-                  <div className="feature-desc">Find anything instantly</div>
-                </div>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon-wrapper">
-                  <span className="material-symbols-rounded">local_offer</span>
-                </div>
-                <div className="feature-content">
-                  <div className="feature-title">Organization</div>
-                  <div className="feature-desc">Tags and metadata</div>
-                </div>
-              </div>
-            </div>
+            <p style={{ marginTop: '2rem', color: 'var(--color-text-secondary)' }}>
+              Opening workspace...
+            </p>
           </div>
         </div>
 
         <div className="statusbar">
-          <span className="statusbar-item">Ready to start</span>
+          <span className="statusbar-item">Loading</span>
         </div>
       </div>
     );
@@ -243,11 +180,6 @@ const App: React.FC = () => {
               title="Redo (Cmd/Ctrl+Shift+Z)"
             >
               <span className="material-symbols-rounded">redo</span>
-            </button>
-            <div className="toolbar-divider"></div>
-            <button className="toolbar-button" onClick={() => closeWorkspace()}>
-              <span className="material-symbols-rounded">close</span>
-              Close Workspace
             </button>
           </div>
           <div className="toolbar-right">
