@@ -199,13 +199,17 @@ async function handleListDocuments(): Promise<any[]> {
     throw new Error('No workspace open');
   }
 
+  console.log('[IPC] handleListDocuments called');
   const metadata = await workspaceService.loadMetadata();
+  console.log('[IPC] Loaded metadata, documents count in metadata:', Object.keys(metadata.documents).length);
   const workspacePath = workspaceService['workspacePath'];
 
   // Also scan for files with frontmatter that might not be in the database
   const documentsDir = path.join(workspacePath, 'documents');
+  console.log('[IPC] Scanning documents directory:', documentsDir);
   try {
     const files = await fs.readdir(documentsDir, { recursive: true });
+    console.log('[IPC] Found files in documents directory:', files.length);
 
     for (const file of files) {
       if (typeof file !== 'string') continue;
@@ -219,35 +223,46 @@ async function handleListDocuments(): Promise<any[]> {
 
       // If not in database, try to read frontmatter
       if (!metadata.documents[relativePath]) {
+        console.log('[IPC] Document not in metadata, reading frontmatter:', relativePath);
         try {
           const content = await fs.readFile(fullPath, 'utf-8');
           const { metadata: fileMeta } = parseFrontmatter(content);
 
-          if (fileMeta.title || fileMeta.mode) {
-            // Add to metadata from frontmatter
-            metadata.documents[relativePath] = {
-              id: relativePath.replace(/[^a-zA-Z0-9]/g, '_'),
-              title: fileMeta.title || path.basename(file, path.extname(file)),
-              mode: fileMeta.mode || 'markdown',
-              tags: fileMeta.tags || [],
-              language: fileMeta.language,
-              created: stats.birthtime.toISOString(),
-              modified: stats.mtime.toISOString(),
-            };
+          // Determine mode from file extension if not in frontmatter
+          let mode: 'notes' | 'markdown' | 'code' = 'markdown';
+          const ext = path.extname(file).toLowerCase();
+          if (ext === '.js' || ext === '.ts' || ext === '.py' || ext === '.java' || ext === '.cpp' || ext === '.c' || ext === '.go' || ext === '.rs') {
+            mode = 'code';
+          } else if (ext === '.html') {
+            mode = 'notes';
           }
+
+          // Add to metadata for ANY discovered file (not just files with frontmatter)
+          metadata.documents[relativePath] = {
+            id: relativePath.replace(/[^a-zA-Z0-9]/g, '_'),
+            title: fileMeta.title || path.basename(file, path.extname(file)),
+            mode: fileMeta.mode || mode,
+            tags: fileMeta.tags || [],
+            language: fileMeta.language,
+            created: stats.birthtime.toISOString(),
+            modified: stats.mtime.toISOString(),
+          };
+          console.log('[IPC] Added document from filesystem:', relativePath, 'mode:', mode);
         } catch (error) {
-          console.error(`Failed to read frontmatter from ${relativePath}:`, error);
+          console.error(`[IPC] Failed to read frontmatter from ${relativePath}:`, error);
         }
       }
     }
   } catch (error) {
-    // Documents directory might not exist yet
+    console.error('[IPC] Failed to scan documents directory:', error);
   }
 
-  return Object.entries(metadata.documents).map(([path, doc]) => ({
+  const result = Object.entries(metadata.documents).map(([path, doc]) => ({
     path,
     ...doc,
   }));
+  console.log('[IPC] Returning documents count:', result.length);
+  return result;
 }
 
 /**
@@ -476,7 +491,10 @@ async function handleSyncWithRemote(_event: any, remoteUrl: string): Promise<voi
   const gitService = workspaceService.getGitService();
   await gitService.syncWithRemote(remoteUrl, patToken);
 
-  // Documents will be reloaded by the renderer after sync
+  // Re-initialize the workspace to rebuild the index with synced documents
+  console.log('[IPC] Re-initializing workspace after sync to rebuild index...');
+  await workspaceService.init();
+  console.log('[IPC] Workspace re-initialized successfully');
 }
 
 /**
